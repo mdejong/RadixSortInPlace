@@ -1,5 +1,3 @@
-// https://www.onlinegdb.com/online_c++_compiler
-
 #include <iostream>
 #include <cstdint>
 
@@ -10,7 +8,7 @@ typedef struct {
 
 // Given a 32 bit integer, extract a specific digit.
 //
-// uint32_t digit = extractDigit(v, digitOffset);
+// uint32_t digit = extractDigit<0>(v, digitOffset);
 
 template <unsigned int D>
 static inline
@@ -244,33 +242,3 @@ void countingSortInPlace(
       std::cout << "-------- " << std::endl;
     }
 }
-
-int main() {
-  uint32_t arr[] = {20, 10, 0, 12, 5, 0};
-
-  countingSortInPlace<0>(arr, 0, sizeof(arr)/sizeof(arr[0]));
-
-  std::cout << (char*) "sorted output:" << std::endl;
-
-  for (int i = 0 ; i < sizeof(arr)/sizeof(arr[0]); i++) {
-    std::cout << (unsigned int) arr[i] << std::endl;
-  }
-
-  return 0;
-}
-
-/*
-int main() {
-  uint32_t arr[] = {0xFF, 0xFF-1, 257, 256, 0xFF-2};
-
-  countingSortInPlace<1>(arr, 0, sizeof(arr)/sizeof(arr[0]));
-
-  std::cout << (char*) "sorted output:" << std::endl;
-
-  for (int i = 0 ; i < sizeof(arr)/sizeof(arr[0]); i++) {
-    std::cout << (unsigned int) arr[i] << std::endl;
-  }
-
-  return 0;
-}
-*/
