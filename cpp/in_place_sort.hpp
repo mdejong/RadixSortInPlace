@@ -56,7 +56,13 @@ void countingSortInPlace(
     }
     std::cout << "-------- " << std::endl;
   }
-    
+  
+  if (n <= 128) {
+    // A small subrange, sorting directly can be much faster than counting and copying
+    std::sort(arr+starti, arr+endi);
+    return;
+  }
+  
   constexpr unsigned int bucketMax = 256;
   CountOff CO[bucketMax] = {}; // init array values to zero
   
