@@ -82,8 +82,6 @@ void countingSortInPlace(
     if (debugOut) {
       std::cout << "countingSortInPlace D = " << D << " counts:" << std::endl;
 
-      unsigned int bucketi;
-
       for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
         CountOff co = CO[bucketi];
         if (co.count != 0) {

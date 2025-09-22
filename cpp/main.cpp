@@ -1,4 +1,4 @@
-#include "in_place_sort.cpp"
+#include "in_place_sort.hpp"
 
 int main() {
   uint32_t arr[] = {0xFF, 0xFF-1, 257, 256, 0xFF-2};
