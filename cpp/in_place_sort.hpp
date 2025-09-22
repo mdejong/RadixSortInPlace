@@ -33,7 +33,7 @@ void countingSortInPlace(
   unsigned int endi
   )
 {
-    constexpr bool debugOut = true;
+    constexpr bool debugOut = false;
     int n = endi - starti;
 
     // if (n < 2) {
@@ -144,26 +144,22 @@ void countingSortInPlace(
 
       if (co.count == 0) {
         // Bucket is empty
-
+        
         arr[readi] = readVal;
 
         currentBucketi = bucketi;
         currentBucketStartOffset = readi;
         readi = writei;
 
+        // unconditional load, reloads from current slot on final iteration
+        readVal = arr[(readi < endi) ? readi : currentBucketStartOffset];
+          
         if constexpr (D > 0) {
           int n = readi - currentBucketStartOffset;
           if (n > 1) {
             countingSortInPlace<D-1>(arr, currentBucketStartOffset, readi);
           }
         }
-        
-        // Loop reload readVal
-        //if (readi < endi) {
-        //  readVal = arr[readi];
-        //}
-
-        readVal = arr[(readi < endi) ? readi : currentBucketStartOffset];
       } else if (readi == writei) {
         // The value at readi happens to be in the correct spot already,
         // value was not previously swapped into this location.
@@ -184,6 +180,9 @@ void countingSortInPlace(
           changed.count -= 1;
           CO[bucketi] = changed;
         }
+        
+        // unconditional load, reloads from current slot on final iteration
+        readVal = arr[(readi < endi) ? readi : writei];
 
         // If writing this single value finished off a bucket range, then
         // recurse into the now finished range.
@@ -196,18 +195,6 @@ void countingSortInPlace(
             }
           }
         }
-
-        // FIXME: condition select to avoid branch : Rd = cond ? Rn : Rm
-        // csel    Rd/zr, Rn/zr, Rm/zr, cond
-        //
-        // readVal = arr[readi < endi ? readi : starti]
-
-        // Loop reload readVal
-        //if (readi < endi) {
-        //  readVal = arr[readi];
-        //}
-
-        readVal = arr[(readi < endi) ? readi : writei];
       } else {
         // Write value into position writei
         uint32_t tmp = arr[writei];
