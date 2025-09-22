@@ -33,6 +33,8 @@ void countingSortInPlace(
   unsigned int endi)
 {
   constexpr bool debugOut = false;
+  constexpr bool debugDumpInOutValues = false;
+  constexpr bool debugDumpHistogram = false;
   int n = endi - starti;
     
   // if (n < 2) {
@@ -40,15 +42,17 @@ void countingSortInPlace(
   //   std::cout << "n " << n << std::endl;
   //   return;
   // }
-
+	
   if (debugOut) {
     std::cout << "countingSortInPlace D = " << D << " input:" << std::endl;
     std::cout << "n " << n << std::endl;
     std::cout << "starti " << starti << std::endl;
     std::cout << "endi " << endi << std::endl;
-    
-    for (int i = starti; i < endi; i++) {
-      std::cout << (unsigned int) arr[i] << std::endl;
+
+    if (debugDumpInOutValues) {
+      for (int i = starti; i < endi; i++) {
+        std::cout << (unsigned int) arr[i] << std::endl;
+      }
     }
     std::cout << "-------- " << std::endl;
   }
@@ -78,7 +82,7 @@ void countingSortInPlace(
     CO[bucketi] = co;
   }
   
-  if (debugOut) {
+  if (debugDumpHistogram) {
     std::cout << "countingSortInPlace D = " << D << " counts:" << std::endl;
     
     for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
@@ -220,9 +224,12 @@ void countingSortInPlace(
     std::cout << "starti " << starti << std::endl;
     std::cout << "endi " << endi << std::endl;
     
-    for (int i = starti; i < endi; i++) {
-      std::cout << (unsigned int) arr[i] << std::endl;
+    if (debugDumpInOutValues) {
+      for (int i = starti; i < endi; i++) {
+        std::cout << (unsigned int) arr[i] << std::endl;
+      }
     }
+    
     std::cout << "-------- " << std::endl;
   }
 }
