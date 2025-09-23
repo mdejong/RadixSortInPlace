@@ -28,6 +28,7 @@
 		3C2FF6CD2E80E3E300C3EC9E /* in_place_sort.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = in_place_sort.hpp; sourceTree = "<group>"; };
 		3C2FF6CE2E80E3E300C3EC9E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3C2FF6D62E80F10000C3EC9E /* RadixSortTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RadixSortTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C7BE04E2E826939003ABE6E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -59,6 +60,7 @@
 		3C2FF6B52E80E26200C3EC9E = {
 			isa = PBXGroup;
 			children = (
+				3C7BE04E2E826939003ABE6E /* README.md */,
 				3C2FF6CF2E80E3E300C3EC9E /* cpp */,
 				3C2FF6D72E80F10000C3EC9E /* RadixSortTests */,
 				3C2FF6BF2E80E26200C3EC9E /* Products */,
