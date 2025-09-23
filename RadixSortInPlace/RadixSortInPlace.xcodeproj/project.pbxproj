@@ -31,11 +31,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		3C2FF6C02E80E26200C3EC9E /* RadixSortInPlace */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = RadixSortInPlace;
-			sourceTree = "<group>";
-		};
 		3C2FF6D72E80F10000C3EC9E /* RadixSortTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = RadixSortTests;
@@ -65,7 +60,6 @@
 			isa = PBXGroup;
 			children = (
 				3C2FF6CF2E80E3E300C3EC9E /* cpp */,
-				3C2FF6C02E80E26200C3EC9E /* RadixSortInPlace */,
 				3C2FF6D72E80F10000C3EC9E /* RadixSortTests */,
 				3C2FF6BF2E80E26200C3EC9E /* Products */,
 			);
@@ -104,9 +98,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				3C2FF6C02E80E26200C3EC9E /* RadixSortInPlace */,
 			);
 			name = RadixSortInPlace;
 			packageProductDependencies = (
