@@ -27,6 +27,7 @@ unsigned int extractDigit(uint32_t v) {
 // D is digit 3,2,1,0 for 32 bits
 
 template <unsigned int D>
+__attribute__((noinline))
 void countingSortInPlace(
   uint32_t * arr,
   unsigned int starti,
@@ -42,6 +43,43 @@ void countingSortInPlace(
   //   std::cout << "n " << n << std::endl;
   //   return;
   // }
+  
+  auto recurse = [](
+                    uint32_t *arr,
+                    unsigned int starti,
+                    unsigned int endi
+                    )
+  {
+    if constexpr (D > 0) {
+      unsigned int n = endi - starti;
+      switch (n) {
+        case 1: {
+          // nop
+          break;
+        }
+        case 2: {
+          // Trivial in-place swap if needed
+          auto v0 = arr[starti];
+          auto v1 = arr[starti+1];
+          if (v0 > v1) {
+            std::swap(v0, v1);
+          }
+          arr[starti] = v0;
+          arr[starti+1] = v1;
+          break;
+        }
+        case 3 ... 128: {
+          // Small bucket subrange can be sorted without recursion
+          std::sort(arr+starti, arr+endi);
+          break;
+        }
+        default: {
+          countingSortInPlace<D-1>(arr, starti, endi);
+          break;
+        }
+      }
+    }
+  };
 	
   if (debugOut) {
     std::cout << "countingSortInPlace D = " << D << " input:" << std::endl;
@@ -56,13 +94,7 @@ void countingSortInPlace(
     }
     std::cout << "-------- " << std::endl;
   }
-  
-  if (n <= 128) {
-    // A small subrange, sorting directly can be much faster than counting and copying
-    std::sort(arr+starti, arr+endi);
-    return;
-  }
-  
+    
   constexpr unsigned int bucketMax = 256;
   CountOff CO[bucketMax] = {}; // init array values to zero
   
@@ -113,14 +145,7 @@ void countingSortInPlace(
         std::cout << "all " << n << " values in same bucket " << bucketi << std::endl;
       }
       
-      if constexpr (D > 0) {
-        unsigned int currentBucketStartOffset = starti;
-        readi = endi;
-        n = endi - currentBucketStartOffset;
-        if (n > 1) {
-          countingSortInPlace<D-1>(arr, currentBucketStartOffset, readi);
-        }
-      }
+      recurse(arr, starti, endi);
       
       return;
     }
@@ -163,12 +188,7 @@ void countingSortInPlace(
       // unconditional load, reloads from current slot on final iteration
       readVal = arr[(readi < endi) ? readi : currentBucketStartOffset];
       
-      if constexpr (D > 0) {
-        int n = readi - currentBucketStartOffset;
-        if (n > 1) {
-          countingSortInPlace<D-1>(arr, currentBucketStartOffset, readi);
-        }
-      }
+      recurse(arr, currentBucketStartOffset, readi);
     } else if (readi == writei) {
       // The value at readi happens to be in the correct spot already,
       // value was not previously swapped into this location.
@@ -197,12 +217,7 @@ void countingSortInPlace(
       // recurse into the now finished range.
       const bool isBucketEmpty = co.count == 1;
       if (isBucketEmpty) {
-        if constexpr (D > 0) {
-          int n = readi - currentBucketStartOffset;
-          if (n > 1) {
-            countingSortInPlace<D-1>(arr, currentBucketStartOffset, readi);
-          }
-        }
+        recurse(arr, currentBucketStartOffset, readi);
       }
     } else {
       // Write value into position writei

@@ -69,19 +69,6 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 
 @implementation RadixSortTests
 
-/*
-- (void)testExample {
-  // This is an example of a functional test case.
-  // Use XCTAssert and related functions to verify your tests produce the correct results.
-      
-  //std::cout << (char*) "sorted output:" << std::endl;
-
-  //for (int i = 0 ; i < sizeof(arr)/sizeof(arr[0]); i++) {
-  //  std::cout << (unsigned int) arr[i] << std::endl;
-  //	}
-}
-*/
-
 - (void)testCSIP_two_digit_1 {
   constexpr unsigned int N = 5;
   std::vector<uint32_t> inWords{
@@ -114,8 +101,10 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   XCTAssert(arr[4] == 257);
 }
 
+constexpr unsigned int PERF_N = 100000;
+
 - (void)testCSIPPerformanceExampleD0 {
-  constexpr unsigned int N = 100000;
+  constexpr unsigned int N = PERF_N;
   
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
@@ -184,8 +173,8 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 
 
 - (void)testCSIPPerformanceExampleD1 {
-  constexpr unsigned int N = 100000;
-  
+  constexpr unsigned int N = PERF_N;
+
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
   
@@ -252,8 +241,8 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 }
 
 - (void)testCSIPPerformanceExampleD2 {
-  constexpr unsigned int N = 100000;
-  
+  constexpr unsigned int N = PERF_N;
+
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
   
@@ -320,8 +309,8 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 }
 
 - (void)testCSIPPerformanceExampleD3 {
-  constexpr unsigned int N = 100000;
-  
+  constexpr unsigned int N = PERF_N;
+
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
   
@@ -388,7 +377,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 }
 
 - (void)testStdSortExample {
-  constexpr unsigned int N = 100000;
+  constexpr unsigned int N = PERF_N;
   
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
