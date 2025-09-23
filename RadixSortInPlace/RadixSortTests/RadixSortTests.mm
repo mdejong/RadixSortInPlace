@@ -101,7 +101,17 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   XCTAssert(arr[4] == 257);
 }
 
-constexpr unsigned int PERF_N = 100000;
+//constexpr unsigned int PERF_N = 100000; // 100 thousand numbers
+//constexpr unsigned int PERF_N = 100000000; // 100 million numbers
+
+// At 4Gb x 2, a test can take 20 minutes to finish
+//constexpr unsigned int PERF_N =   1073741824; // 2*30 is very very large (4 Gb x 2)
+
+constexpr unsigned int PERF_N =   1073741824 / 4; // (2*30)/4 is very very large (1 Gb x 2)
+
+// Very large size tests will never finish unless this is 1
+#undef PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST
+#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1
 
 - (void)testCSIPPerformanceExampleD0 {
   constexpr unsigned int N = PERF_N;
@@ -114,21 +124,7 @@ constexpr unsigned int PERF_N = 100000;
   //constexpr unsigned int maxU32 = (uint32_t)-1;
   constexpr unsigned int maxU32 = 256-1;
   setupRandomPixelValues(randomWordsVec, maxU32);
-  
-#if defined(DEBUG)
-  if ((0)) {
-    // ascending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = i;
-    }
-  } else if ((0)) {
-    // descending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = (N - 1) - i;
-    }
-  }
-#endif // DEBUG
-  
+    
   auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & dstVec = *sharedDstVec;
   uint32_t *outOrigArr = dstVec.data();
@@ -183,21 +179,7 @@ constexpr unsigned int PERF_N = 100000;
   //constexpr unsigned int maxU32 = (uint32_t)-1;
   constexpr unsigned int maxU32 = 0xFFFF;
   setupRandomPixelValues(randomWordsVec, maxU32);
-  
-#if defined(DEBUG)
-  if ((0)) {
-    // ascending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = i;
-    }
-  } else if ((0)) {
-    // descending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = (N - 1) - i;
-    }
-  }
-#endif // DEBUG
-  
+    
   auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & dstVec = *sharedDstVec;
   uint32_t *outOrigArr = dstVec.data();
@@ -252,20 +234,6 @@ constexpr unsigned int PERF_N = 100000;
   constexpr unsigned int maxU32 = 0xFFFFFF;
   setupRandomPixelValues(randomWordsVec, maxU32);
   
-#if defined(DEBUG)
-  if ((0)) {
-    // ascending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = i;
-    }
-  } else if ((0)) {
-    // descending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = (N - 1) - i;
-    }
-  }
-#endif // DEBUG
-  
   auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & dstVec = *sharedDstVec;
   uint32_t *outOrigArr = dstVec.data();
@@ -319,21 +287,7 @@ constexpr unsigned int PERF_N = 100000;
   //constexpr unsigned int maxU32 = (uint32_t)-1;
   constexpr unsigned int maxU32 = 0xFFFFFFFF;
   setupRandomPixelValues(randomWordsVec, maxU32);
-  
-#if defined(DEBUG)
-  if ((0)) {
-    // ascending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = i;
-    }
-  } else if ((0)) {
-    // descending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = (N - 1) - i;
-    }
-  }
-#endif // DEBUG
-  
+    
   auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & dstVec = *sharedDstVec;
   uint32_t *outOrigArr = dstVec.data();
@@ -387,21 +341,7 @@ constexpr unsigned int PERF_N = 100000;
   //constexpr unsigned int maxU32 = (uint32_t)-1;
   constexpr unsigned int maxU32 = 0xFFFFFFFF;
   setupRandomPixelValues(randomWordsVec, maxU32);
-  
-#if defined(DEBUG)
-  if ((0)) {
-    // ascending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = i;
-    }
-  } else if ((0)) {
-    // descending identity
-    for (int i = 0; i < N; i++) {
-      randomWordsVec[i] = (N - 1) - i;
-    }
-  }
-#endif // DEBUG
-  
+    
   auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & dstVec = *sharedDstVec;
   uint32_t *outOrigArr = dstVec.data();
