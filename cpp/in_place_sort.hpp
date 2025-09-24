@@ -119,6 +119,9 @@ void countingSortInPlace(
   for (readi = starti; readi < endi; readi++) {
     readVal = arr[readi];
     bucketi = extractDigit<D>(readVal);
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
     CountOff co = CO[bucketi];
     co.count += 1;
     CO[bucketi] = co;
