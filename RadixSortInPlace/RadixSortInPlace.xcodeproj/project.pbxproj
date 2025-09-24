@@ -29,6 +29,7 @@
 		3C2FF6CE2E80E3E300C3EC9E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3C2FF6D62E80F10000C3EC9E /* RadixSortTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RadixSortTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3C7BE04E2E826939003ABE6E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = SOURCE_ROOT; };
+		3C878F2E2E83759F00C4E3A2 /* ska_sort.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ska_sort.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +80,7 @@
 		3C2FF6CF2E80E3E300C3EC9E /* cpp */ = {
 			isa = PBXGroup;
 			children = (
+				3C878F2E2E83759F00C4E3A2 /* ska_sort.hpp */,
 				3C2FF6CD2E80E3E300C3EC9E /* in_place_sort.hpp */,
 				3C2FF6CE2E80E3E300C3EC9E /* main.cpp */,
 			);
