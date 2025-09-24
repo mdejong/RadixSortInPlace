@@ -14,4 +14,9 @@ https://github.com/albicilla/simple_paradis
 
 https://github.com/fenilgmehta/Fastest-Integer-Sort
 
+C++ Now 2017: M. Skarupke “Sorting in less than O(n log n): Generalizing and optimizing radix sort"
+
+https://www.youtube.com/watch?v=zqs87a_7zxw&t=1080s
+
 https://probablydance.com/2016/12/27/i-wrote-a-faster-sorting-algorithm/
+
