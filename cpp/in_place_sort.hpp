@@ -1,6 +1,10 @@
 #include <iostream>
 #include <cstdint>
 
+#if defined(DEBUG)
+#include <assert.h>
+#endif
+
 typedef struct {
   uint32_t count;
   uint32_t offset;
@@ -172,6 +176,9 @@ void countingSortInPlace(
   for ( ; readi < endi; ) {
     unsigned int bucketi = extractDigit<D>(readVal);
     
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
     CountOff co = CO[bucketi];
     
     unsigned int writei = co.offset;
@@ -242,6 +249,7 @@ void countingSortInPlace(
   
   if (debugOut) {
     std::cout << "countingSortInPlace D = " << D << " returns:" << std::endl;
+    std::cout << "n " << n << std::endl;
     std::cout << "starti " << starti << std::endl;
     std::cout << "endi " << endi << std::endl;
     
