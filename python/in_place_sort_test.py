@@ -37,10 +37,8 @@ class TestStringMethods(unittest.TestCase):
     self.assertEqual(arr, expected)
 
   def test_A_trivial_6(self):
-    # 4 different values, swap (11, 21) and then
-    # bucket1 is empty after the swap
     arr = [ 12, 0, 11, 21 ]
-    expected = [ 0, 11, 21, 12 ]
+    expected = [ 0, 21, 11, 12 ]
     countingSortInPlace(arr, 1)
     self.assertEqual(arr, expected)
 
@@ -126,15 +124,21 @@ class TestStringMethods(unittest.TestCase):
     countingSortInPlace(arr, 1)
     self.assertEqual(arr, expected)
 
-   # Multiple passes for LSD powers of 1 and 10
+  def test_C_nt_dup_8(self):
+    arr =      [ 2, 2, 3, 3, 0, 1, 0, 1 ]
+    expected = [ 0, 0, 1, 1, 2, 2, 3, 3 ]
+    countingSortInPlace(arr, 1)
+    self.assertEqual(arr, expected)
+
+   # Multiple passes for LSD powers of 10 and 1
 
   def test_D_two_pass_1(self):
     arr = [ 12, 0, 11, 21 ]
     expected = [ 0, 11, 12, 21 ]
-    countingSortInPlace(arr, 1)
-    # Now [0, 11, 21, 12]
     countingSortInPlace(arr, 10)
-    # Now [0, 11, 12, 21]
+    # [0, 12, 11, 21]
+    countingSortInPlace(arr, 1, 1, 3)
+    # [0, 11, 12, 21]
     self.assertEqual(arr, expected)
 
   # Split (binary) into buckets based on 10 digit
@@ -176,6 +180,30 @@ class TestStringMethods(unittest.TestCase):
     arr = [ 99, 98, 97 ]
     expected = [ 97, 98, 99 ]
     countingSortInPlace(arr, 10, 0, 3, True)
+    self.assertEqual(arr, expected)
+
+  def test_F_lt100_D1(self):
+    arr = [ 38, 33, 82, 29, 77, 52, 34, 87, 28 ]
+    expected = [ 28, 29, 38, 33, 34, 52, 77, 82, 87 ]
+    countingSortInPlace(arr, 10, 0, len(arr), False)
+    self.assertEqual(arr, expected)
+
+  def test_F_lt100_D1_25(self):
+    arr =      [ 28, 29, 38, 33, 34, 52, 77, 82, 87 ]
+    expected = [ 28, 29, 33, 34, 38, 52, 77, 82, 87 ]
+    countingSortInPlace(arr, 1, 2, 5, False)
+    self.assertEqual(arr, expected)
+
+  def test_F_lt100_D10(self):
+    arr = [ 38, 33, 82, 29, 77, 52, 34, 87, 28 ]
+    expected = [ 28, 29, 33, 34, 38, 52, 77, 82, 87 ]
+    countingSortInPlace(arr, 10, 0, len(arr), True)
+    self.assertEqual(arr, expected)
+
+  def test_G_example(self):
+    arr = [93, 0, 45, 1]
+    expected = sorted(arr)
+    countingSortInPlace(arr, 100, 0, len(arr), True)
     self.assertEqual(arr, expected)
 
 if __name__ == '__main__':

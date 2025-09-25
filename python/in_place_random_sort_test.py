@@ -49,5 +49,31 @@ class TestStringMethods(unittest.TestCase):
     countingSortInPlace(arr, 100, 0, len(arr), True)
     self.assertEqual(arr, expected)
 
+  def test_C_sort_2(self):
+    # Generate list of random integer non-duplicated values
+    n = 10
+    arr = random.sample(range(0, 10), n)
+    for i in range(6):
+      arr = arr + arr
+    random.shuffle(arr)
+    #print(arr)
+    expected = sorted(arr)
+    #print(expected)
+    countingSortInPlace(arr, 10, 0, len(arr), True)
+    self.assertEqual(arr, expected)
+
+  def test_C_sort_3(self):
+    # Generate list of random integer non-duplicated values
+    n = 10
+    arr = random.sample(range(0, 100), n)
+    for i in range(6):
+      arr = arr + arr
+    random.shuffle(arr)
+    #print(arr)
+    expected = sorted(arr)
+    #print(expected)
+    countingSortInPlace(arr, 100, 0, len(arr), True)
+    self.assertEqual(arr, expected)
+
 if __name__ == '__main__':
     unittest.main()
