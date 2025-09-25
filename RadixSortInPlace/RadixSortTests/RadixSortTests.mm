@@ -71,7 +71,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 
 @implementation RadixSortTests
 
-- (void)testCSIP_two_digit_1 {
+- (void)testCSIPTwoDigit1 {
   constexpr unsigned int N = 5;
   std::vector<uint32_t> inWords{
     0xFF, 0xFF-1, 257, 256, 0xFF-2
