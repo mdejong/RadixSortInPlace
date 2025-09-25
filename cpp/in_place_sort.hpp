@@ -233,24 +233,23 @@ void countingSortInPlace(
     assert(writei < endi);
 #endif
     
+    // increment offset and decrement count (single write)
+    {
+      CountOff changed = co;
+      changed.offset += 1;
+      changed.count -= 1;
+      CO[bucketi] = changed;
+    }
+    
     if (readi == writei) {
-      // The value at readi happens to be in the correct spot already,
-      // value was not previously swapped into this location.
+      // Cached readVal should be written into the current bucket.
       
       arr[readi] = readVal;
 #if defined(DEBUG)
       slotWrites += 1;
 #endif
       readi += 1;
-      
-      // increment offset and decrement count (single write)
-      {
-        CountOff changed = co;
-        changed.offset += 1;
-        changed.count -= 1;
-        CO[bucketi] = changed;
-      }
-      
+            
       // If writing this single value finished off a bucket range
       const bool isBucketEmpty = co.count == 1;
       
@@ -278,7 +277,7 @@ void countingSortInPlace(
       // unconditional load, reloads from current slot on final iteration
       readVal = arr[(readi < endi) ? readi : writei];
     } else {
-      // Write value into position writei
+      // Write into a different bucket at writei
       uint32_t tmp = arr[writei];
       
       arr[writei] = readVal;
@@ -286,15 +285,7 @@ void countingSortInPlace(
 #if defined(DEBUG)
       slotWrites += 1;
 #endif
-      
-      // increment offset and decrement count (single write)
-      {
-        CountOff changed = co;
-        changed.offset += 1;
-        changed.count -= 1;
-        CO[bucketi] = changed;
-      }
-      
+            
       // Optimal path, a series of writes into position
       // happen without needing to write tmp back to
       // arr[readi] or re-read from the same location.
