@@ -267,8 +267,8 @@ void countingSortInPlace(
         if (nextBucketi != 0) {
           readi = CO[nextBucketi].offset;
 #if defined(DEBUG)
-    assert(readi >= starti);
-    assert(readi < endi);
+          assert(readi >= starti);
+          assert(readi < endi);
 #endif
         } else {
           readi = endi;

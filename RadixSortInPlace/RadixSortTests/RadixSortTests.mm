@@ -134,6 +134,21 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   XCTAssert(arr[3] == (255+93));
 }
 
+- (void)testCSIPCheckPartialSkip {
+  std::vector<uint32_t> inWords{
+    2, 2, 3, 3, 0, 1, 0, 1
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1, 2, 2, 3, 3
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlace<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
 //constexpr unsigned int PERF_N = 100; // 100 thousand numbers
 
 //constexpr unsigned int PERF_N = 100000; // 100 thousand numbers
