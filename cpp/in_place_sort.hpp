@@ -219,6 +219,8 @@ void countingSortInPlace(
   readi = starti;
   readVal = arr[readi];
   
+  unsigned int currentBucketStartOffset = starti;
+  
   for ( ; readi < endi ; ) {
     unsigned int bucketi = extractDigit<D>(readVal);
     
@@ -254,11 +256,32 @@ void countingSortInPlace(
       const bool isBucketEmpty = co.count == 1;
       
       if (isBucketEmpty) {
-        // Bucket now empty, skip 0 to N other empty buckets, then partial bucket
+        // Bucket now empty, skip 0 to N other empty buckets, then partial bucket.
+        // Note that current bucket and following empty buckets are recursed into
+        // now as opposed to after all values have been processed as that is more
+        // cache friendly for small buckets.
+        
+        if constexpr (D > 0) {
+          readi = CO[bucketi].offset;
+          
+          recurse(arr, currentBucketStartOffset, readi);
+          
+          currentBucketStartOffset = readi;
+        }
         
         unsigned int nextBucketi = nextBuckets[bucketi];
         
         while ((nextBucketi != 0) and (CO[nextBucketi].count == 0)) {
+          if constexpr (D > 0) {
+            unsigned int bucketi = nextBucketi;
+            
+            readi = CO[bucketi].offset;
+            
+            recurse(arr, currentBucketStartOffset, readi);
+            
+            currentBucketStartOffset = readi;
+          }
+          
           nextBucketi = nextBuckets[nextBucketi];
         }
         
@@ -288,28 +311,6 @@ void countingSortInPlace(
 #endif
     }
   } // end foreach starti -> endi
-  
-  // process each non-empty bucket, starting from starti
-  
-  if constexpr (D > 0)
-  {
-    unsigned int bucketi = nextNonEmptyBucket;
-    unsigned int currentBucketStartOffset = starti;
-    
-    while (1) {
-      readi = CO[bucketi].offset;
-      
-      recurse(arr, currentBucketStartOffset, readi);
-      
-      currentBucketStartOffset = readi;
-      
-      bucketi = nextBuckets[bucketi];
-      
-      if (bucketi == 0) {
-        break;
-      }
-    }
-  }
   
   if (debugOut) {
     std::cout << "countingSortInPlace D = " << D << " returns:" << std::endl;
