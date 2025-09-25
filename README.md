@@ -20,3 +20,5 @@ https://www.youtube.com/watch?v=zqs87a_7zxw&t=1080s
 
 https://probablydance.com/2016/12/27/i-wrote-a-faster-sorting-algorithm/
 
+https://publications.scss.tcd.ie/theses/diss/2024/TCD-SCSS-DISSERTATION-2024-012.pdf
+
