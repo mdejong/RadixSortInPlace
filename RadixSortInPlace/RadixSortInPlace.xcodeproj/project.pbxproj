@@ -28,6 +28,11 @@
 		3C2FF6CD2E80E3E300C3EC9E /* in_place_sort.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = in_place_sort.hpp; sourceTree = "<group>"; };
 		3C2FF6CE2E80E3E300C3EC9E /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		3C2FF6D62E80F10000C3EC9E /* RadixSortTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RadixSortTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C7A26C32E84CBFF00C46DC7 /* in_place_radix.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = in_place_radix.py; sourceTree = "<group>"; };
+		3C7A26C42E84CBFF00C46DC7 /* in_place_random_sort_test.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = in_place_random_sort_test.py; sourceTree = "<group>"; };
+		3C7A26C52E84CBFF00C46DC7 /* in_place_sort.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = in_place_sort.py; sourceTree = "<group>"; };
+		3C7A26C62E84CBFF00C46DC7 /* in_place_sort_test.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = in_place_sort_test.py; sourceTree = "<group>"; };
+		3C7A26C72E84CBFF00C46DC7 /* lsd_radix.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = lsd_radix.py; sourceTree = "<group>"; };
 		3C7BE04E2E826939003ABE6E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = SOURCE_ROOT; };
 		3C878F2E2E83759F00C4E3A2 /* ska_sort.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ska_sort.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -61,6 +66,7 @@
 		3C2FF6B52E80E26200C3EC9E = {
 			isa = PBXGroup;
 			children = (
+				3C7A26C92E84CBFF00C46DC7 /* python */,
 				3C7BE04E2E826939003ABE6E /* README.md */,
 				3C2FF6CF2E80E3E300C3EC9E /* cpp */,
 				3C2FF6D72E80F10000C3EC9E /* RadixSortTests */,
@@ -86,6 +92,19 @@
 			);
 			name = cpp;
 			path = ../cpp;
+			sourceTree = SOURCE_ROOT;
+		};
+		3C7A26C92E84CBFF00C46DC7 /* python */ = {
+			isa = PBXGroup;
+			children = (
+				3C7A26C32E84CBFF00C46DC7 /* in_place_radix.py */,
+				3C7A26C42E84CBFF00C46DC7 /* in_place_random_sort_test.py */,
+				3C7A26C52E84CBFF00C46DC7 /* in_place_sort.py */,
+				3C7A26C62E84CBFF00C46DC7 /* in_place_sort_test.py */,
+				3C7A26C72E84CBFF00C46DC7 /* lsd_radix.py */,
+			);
+			name = python;
+			path = ../python;
 			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
