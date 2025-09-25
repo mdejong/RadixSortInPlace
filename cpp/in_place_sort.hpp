@@ -278,19 +278,14 @@ void countingSortInPlace(
       readVal = arr[(readi < endi) ? readi : writei];
     } else {
       // Write into a different bucket at writei
-      uint32_t tmp = arr[writei];
       
-      arr[writei] = readVal;
+      uint32_t tmp = readVal;
+      readVal = arr[writei];
+      arr[writei] = tmp;
       
 #if defined(DEBUG)
       slotWrites += 1;
 #endif
-            
-      // Optimal path, a series of writes into position
-      // happen without needing to write tmp back to
-      // arr[readi] or re-read from the same location.
-      
-      readVal = tmp;
     }
   } // end foreach starti -> endi
   
