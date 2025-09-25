@@ -103,6 +103,39 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   XCTAssert(arr[4] == 257);
 }
 
+- (void)testCSIPTwoRanges1 {
+  constexpr unsigned int N = 4;
+  std::vector<uint32_t> inWords{
+    255+93, 0, 255+45, 1
+  };
+  
+  uint32_t arr[N];
+  memcpy(arr, inWords.data(), N * sizeof(uint32_t));
+  
+  auto printArray = [](uint32_t *arr, int n, char *msg) {
+    int i;
+    printf("%s\n",msg);
+    printf("[%d",arr[0]);
+    for (i=1; i < n; i++) {
+      printf(",%d", arr[i]);
+    }
+    printf("]\n");
+  };
+  
+  printArray(arr, N, (char*)"unsorted");
+  
+  countingSortInPlace<1>(arr, 0, N);
+  
+  printArray(arr, N, (char*)"sorted");
+  
+  XCTAssert(arr[0] == 0);
+  XCTAssert(arr[1] == 1);
+  XCTAssert(arr[2] == (255+45));
+  XCTAssert(arr[3] == (255+93));
+}
+
+//constexpr unsigned int PERF_N = 100; // 100 thousand numbers
+
 //constexpr unsigned int PERF_N = 100000; // 100 thousand numbers
 //constexpr unsigned int PERF_N = 100000000; // 100 million numbers
 

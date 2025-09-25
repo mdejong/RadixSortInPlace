@@ -40,6 +40,7 @@ void countingSortInPlace(
   constexpr bool debugOut = false;
   constexpr bool debugDumpInOutValues = false;
   constexpr bool debugDumpHistogram = false;
+  constexpr bool debugDumpPrefixSum = false;
   int n = endi - starti;
     
   // if (n < 2) {
@@ -168,15 +169,57 @@ void countingSortInPlace(
     psum += co.count;
   }
   
+  // Create a second "next bucket" table that given
+  // a bucketi this finds the next bucket indicated
+  // as being not-empty. If a bucket is not used
+  // then this table entry is zero, and the final
+  // used bucket contains a zero to indicate the end.
+  
+  uint8_t nextBuckets[bucketMax] = {}; // init array values to zero
+  uint8_t nextNonEmptyBucket = 0;
+  
+  for (int bucketi = bucketMax - 1; bucketi >= 0; bucketi--) {
+    CountOff co = CO[bucketi];
+    if (co.count != 0) {
+      nextBuckets[bucketi] = nextNonEmptyBucket;
+      nextNonEmptyBucket = bucketi;
+    }
+  }
+
+  if (debugDumpPrefixSum) {
+    std::cout << "countingSortInPlace D = " << D << " prefix sum:" << std::endl;
+    
+    for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
+      CountOff co = CO[bucketi];
+      if (co.count != 0) {
+        std::cout << "[" << bucketi << "] = " << co.offset << std::endl;
+      }
+    }
+    std::cout << "-------- " << std::endl;
+  }
+
+  if (debugDumpPrefixSum) {
+    std::cout << "countingSortInPlace D = " << D << " next buckets:" << std::endl;
+
+    for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
+      CountOff co = CO[bucketi];
+      if (co.count != 0) {
+        std::cout << "[" << bucketi << "] = " << (unsigned int)nextBuckets[bucketi] << std::endl;
+      }
+    }
+    std::cout << "-------- " << std::endl;
+  }
+  
   // Setup initial conditions and loop over all values in range
   
-  unsigned int currentBucketi = bucketMax;
-  unsigned int currentBucketStartOffset = 0;
+#if defined(DEBUG)
+  unsigned int slotWrites = 0;
+#endif
   
   readi = starti;
   readVal = arr[readi];
   
-  for ( ; readi < endi; ) {
+  for ( ; readi < endi ; ) {
     unsigned int bucketi = extractDigit<D>(readVal);
     
 #if defined(DEBUG)
@@ -185,31 +228,19 @@ void countingSortInPlace(
     CountOff co = CO[bucketi];
     
     unsigned int writei = co.offset;
+#if defined(DEBUG)
+    assert(writei >= starti);
+    assert(writei < endi);
+#endif
     
-    if (co.count == 0) {
-      // Bucket is empty
-      
-      arr[readi] = readVal;
-      
-      currentBucketi = bucketi;
-      currentBucketStartOffset = readi;
-      readi = writei;
-      
-      // unconditional load, reloads from current slot on final iteration
-      readVal = arr[(readi < endi) ? readi : currentBucketStartOffset];
-      
-      recurse(arr, currentBucketStartOffset, readi);
-    } else if (readi == writei) {
+    if (readi == writei) {
       // The value at readi happens to be in the correct spot already,
       // value was not previously swapped into this location.
       
       arr[readi] = readVal;
-      
-      if (bucketi != currentBucketi) {
-        currentBucketi = bucketi;
-        currentBucketStartOffset = readi;
-      }
-      
+#if defined(DEBUG)
+      slotWrites += 1;
+#endif
       readi += 1;
       
       // increment offset and decrement count (single write)
@@ -220,19 +251,41 @@ void countingSortInPlace(
         CO[bucketi] = changed;
       }
       
+      // If writing this single value finished off a bucket range
+      const bool isBucketEmpty = co.count == 1;
+      
+      if (isBucketEmpty) {
+        // Bucket now empty, skip 0 to N other empty buckets, then partial bucket
+        
+        unsigned int nextBucketi = nextBuckets[bucketi];
+        
+        while ((nextBucketi != 0) and (CO[nextBucketi].count == 0)) {
+          nextBucketi = nextBuckets[nextBucketi];
+        }
+        
+        // Post empty bucket loop, skip partial in non-empty bucket
+        if (nextBucketi != 0) {
+          readi = CO[nextBucketi].offset;
+#if defined(DEBUG)
+    assert(readi >= starti);
+    assert(readi < endi);
+#endif
+        } else {
+          readi = endi;
+        }
+      }
+      
       // unconditional load, reloads from current slot on final iteration
       readVal = arr[(readi < endi) ? readi : writei];
-      
-      // If writing this single value finished off a bucket range, then
-      // recurse into the now finished range.
-      const bool isBucketEmpty = co.count == 1;
-      if (isBucketEmpty) {
-        recurse(arr, currentBucketStartOffset, readi);
-      }
     } else {
       // Write value into position writei
       uint32_t tmp = arr[writei];
+      
       arr[writei] = readVal;
+      
+#if defined(DEBUG)
+      slotWrites += 1;
+#endif
       
       // increment offset and decrement count (single write)
       {
@@ -247,6 +300,28 @@ void countingSortInPlace(
       // arr[readi] or re-read from the same location.
       
       readVal = tmp;
+    }
+  } // end foreach starti -> endi
+  
+  // process each non-empty bucket, starting from starti
+  
+  if constexpr (D > 0)
+  {
+    unsigned int bucketi = nextNonEmptyBucket;
+    unsigned int currentBucketStartOffset = starti;
+    
+    while (1) {
+      readi = CO[bucketi].offset;
+      
+      recurse(arr, currentBucketStartOffset, readi);
+      
+      currentBucketStartOffset = readi;
+      
+      bucketi = nextBuckets[bucketi];
+      
+      if (bucketi == 0) {
+        break;
+      }
     }
   }
   
@@ -264,4 +339,9 @@ void countingSortInPlace(
     
     std::cout << "-------- " << std::endl;
   }
+  
+#if defined(DEBUG)
+  // A bug would cause these two to not match
+  assert(n == slotWrites);
+#endif
 }
