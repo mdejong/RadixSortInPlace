@@ -43,12 +43,12 @@ void histogramOpt(
                   uint32_t * table2
                   )
 {
-  // Define this symbol to make use of 4 unroll optimization
-#define UNROLL_HISTOGRAMS 1
-  
+//#define UNROLL_HISTOGRAMS2
+//#define UNROLL_HISTOGRAMS4
+
   constexpr unsigned int bucketMax = M;
   
-#if !defined(UNROLL_HISTOGRAMS)
+#if !defined(UNROLL_HISTOGRAMS2) && !defined(UNROLL_HISTOGRAMS4)
   for (auto readi = starti; readi < endi; readi++) {
     auto readVal = arr[readi];
     bucketi = extractDigit<D>(readVal);
@@ -57,7 +57,46 @@ void histogramOpt(
 #endif
     ++table1[bucketi];
   }
-#else // UNROLL_HISTOGRAMS
+#elif defined(UNROLL_HISTOGRAMS2)
+  constexpr size_t unroll_count = 2;
+  unsigned int unrolledLoops = (endi - starti) / unroll_count;
+  unsigned int unrolledEnd = unrolledLoops * unroll_count;
+  
+  unsigned int readi = starti;
+  for (; readi < unrolledEnd; readi += unroll_count) {
+    unsigned int bucketi0 = extractDigit<D>(arr[readi+0]);
+    unsigned int bucketi1 = extractDigit<D>(arr[readi+1]);
+
+#if defined(DEBUG)
+    assert(bucketi0 < bucketMax);
+    assert(bucketi1 < bucketMax);
+#endif
+    
+    ++table1[bucketi0];
+    ++table2[bucketi1];
+  }
+  for (; readi < endi; readi++) {
+    bucketi = extractDigit<D>(arr[readi]);
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
+    ++table1[bucketi];
+  }
+  
+  for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
+    table1[bucketi] = table1[bucketi] + table2[bucketi];
+  }
+
+  if (bucketi == bucketMax) {
+    // Wacky case of no cleanup loops, grab last bucketi explicitly
+    readi -= 1;
+    auto readVal = arr[readi];
+    bucketi = extractDigit<D>(readVal);
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
+  }
+#else // UNROLL_HISTOGRAMS4
   uint32_t table3[bucketMax] = {};
   uint32_t table4[bucketMax] = {};
   
@@ -105,9 +144,8 @@ void histogramOpt(
     assert(bucketi < bucketMax);
 #endif
   }
-#endif // UNROLL_HISTOGRAMS
+#endif // UNROLL_HISTOGRAMS4
 }
-
 // D is digit 3,2,1,0 for 32 bits
 
 template <unsigned int D>
