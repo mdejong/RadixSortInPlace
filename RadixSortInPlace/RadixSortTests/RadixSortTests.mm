@@ -11,6 +11,7 @@
 #include <cstddef>  // For std::ptrdiff_t
 
 #include "in_place_sort.hpp"
+#include "in_place_sort_opt.hpp"
 
 #include "ska_sort.hpp"
 
@@ -144,6 +145,21 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlace<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPCheckPartialSkipOpt {
+  std::vector<uint32_t> inWords{
+    2, 2, 3, 3, 0, 1, 0, 1
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1, 2, 2, 3, 3
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
 
   bool same = inWords == expected;
   XCTAssert(same);
@@ -379,6 +395,61 @@ constexpr unsigned int PERF_N =   1073741824 / 4; // (2*30)/4 is very very large
   }];
     
 }
+
+- (void)testCSIPPerformanceExampleD3Opt {
+  constexpr unsigned int N = PERF_N;
+
+  auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
+  std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
+  
+  // Generating the random numbers seems to take up the vast majority of runtime at large sizes
+  // Use u32 max so that randomWords are highly spread over whole int range
+  //constexpr unsigned int maxU32 = (uint32_t)-1;
+  constexpr unsigned int maxU32 = 0xFFFFFFFF;
+  setupRandomPixelValues(randomWordsVec, maxU32);
+    
+  auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
+  std::vector<uint32_t> & dstVec = *sharedDstVec;
+  uint32_t *outOrigArr = dstVec.data();
+  memset(outOrigArr, 0, N * sizeof(uint32_t));
+  
+  [self measureBlock:^{
+    for (int i = 0; i < PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST; i++) {
+      std::vector<uint32_t> & randomWords = *sharedRandomWords;
+      uint32_t *inPtr = randomWords.data();
+      std::vector<uint32_t> & dstVec = *sharedDstVec;
+      uint32_t *outPtr = dstVec.data();
+      
+      memcpy(outPtr, inPtr, N * sizeof(uint32_t));
+      
+      countingSortInPlaceOpt<3>(outPtr, 0, N);
+      
+#if defined(DEBUG)
+      {
+        std::vector<uint32_t> expected;
+        {
+          std::vector<uint32_t> stdSorted = randomWords;
+          std::sort(begin(stdSorted), end(stdSorted));
+          expected = stdSorted;
+        }
+        bool passed = true;
+        for (int exi = 0; exi < expected.size(); exi++) {
+          if (expected[exi] != outPtr[exi]) {
+            XCTAssert(false, "%d != %d : at exi %d", expected[exi], outPtr[exi], exi);
+            passed = false;
+            break;
+          }
+        }
+        if (!passed) {
+          break;
+        }
+      }
+#endif // DEBUG
+    }
+  }];
+    
+}
+
 
 - (void)testStdSortExample {
   constexpr unsigned int N = PERF_N;
