@@ -333,7 +333,22 @@ void countingSortInPlaceOpt(
   
   unsigned int currentBucketStartOffset = starti;
   
-  for ( ; readi < endi ; ) {
+  auto reshuffle = [
+#if defined(DEBUG)
+    &slotWrites,
+#endif
+     recurse
+  ](
+    uint32_t * arr,
+    uint32_t readVal,
+    uint32_t * counts,
+    uint32_t * offsets,
+    unsigned int starti,
+    unsigned int endi,
+    unsigned int & readi,
+    unsigned int & currentBucketStartOffset,
+    uint8_t * nextBuckets
+  ) -> uint32_t {
     unsigned int bucketi = extractDigit<D>(readVal);
     
 #if defined(DEBUG)
@@ -419,7 +434,13 @@ void countingSortInPlaceOpt(
       slotWrites += 1;
 #endif
     }
-  } // end foreach starti -> endi
+                        
+    return readVal;
+  }; // end reshuffle()
+  
+  for ( ; readi < endi ; ) {
+    readVal = reshuffle(arr, readVal, counts, offsets, starti, endi, readi, currentBucketStartOffset, nextBuckets);
+  }
   
   if (debugOut) {
     std::cout << "countingSortInPlace D = " << D << " returns:" << std::endl;
