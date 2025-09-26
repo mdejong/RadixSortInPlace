@@ -28,6 +28,32 @@ unsigned int extractDigit(uint32_t v) {
   }
 }
 
+// Extract histogram logic into util method so profiling visibility.
+// Note that bucketi writes back into caller stack because of
+// special case of all values in same bucket.
+
+template <unsigned int D, unsigned int M>
+static inline
+void histogram(
+                  uint32_t * arr,
+                  unsigned int starti,
+                  unsigned int endi,
+                  unsigned int & bucketi,
+                  uint32_t * table1,
+                  uint32_t * table2
+                  )
+{
+  for (auto readi = starti; readi < endi; readi++) {
+    auto readVal = arr[readi];
+    bucketi = extractDigit<D>(readVal);
+#if defined(DEBUG)
+    constexpr unsigned int bucketMax = M;
+    assert(bucketi < bucketMax);
+#endif
+    ++table1[bucketi];
+  }
+}
+
 // D is digit 3,2,1,0 for 32 bits
 
 template <unsigned int D>
@@ -101,7 +127,11 @@ void countingSortInPlace(
   }
     
   constexpr unsigned int bucketMax = 256;
-  CountOff CO[bucketMax] = {}; // init array values to zero
+  
+  //CountOff CO[bucketMax] = {}; // init array values to zero
+  
+  uint32_t counts[bucketMax] = {};
+  uint32_t offsets[bucketMax] = {};
   
   // for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
   //     CountOff z;
@@ -115,26 +145,16 @@ void countingSortInPlace(
   // Histogram counts
   unsigned int readi;
   unsigned int bucketi = bucketMax;
-  uint32_t readVal;
   
-  for (readi = starti; readi < endi; readi++) {
-    readVal = arr[readi];
-    bucketi = extractDigit<D>(readVal);
-#if defined(DEBUG)
-    assert(bucketi < bucketMax);
-#endif
-    CountOff co = CO[bucketi];
-    co.count += 1;
-    CO[bucketi] = co;
-  }
+  histogram<D, bucketMax>(arr, starti, endi, bucketi, counts, offsets);
   
   if (debugDumpHistogram) {
     std::cout << "countingSortInPlace D = " << D << " counts:" << std::endl;
     
     for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
-      CountOff co = CO[bucketi];
-      if (co.count != 0) {
-        std::cout << "[" << bucketi << "] = " << co.count << std::endl;
+      auto count = counts[bucketi];
+      if (count != 0) {
+        std::cout << "[" << bucketi << "] = " << count << std::endl;
       }
     }
     std::cout << "-------- " << std::endl;
@@ -146,8 +166,8 @@ void countingSortInPlace(
   // result in no reordering.
   
   if (bucketi != bucketMax) {
-    CountOff co = CO[bucketi];
-    if (co.count == n) {
+    auto count = counts[bucketi];
+    if (count == n) {
       // Special case where all values scan into a single bucket.
       if (debugOut) {
         std::cout << "all " << n << " values in same bucket " << bucketi << std::endl;
@@ -163,10 +183,9 @@ void countingSortInPlace(
   
   unsigned int psum = starti;
   for (bucketi = 0; bucketi < bucketMax; bucketi++) {
-    CountOff co = CO[bucketi];
-    co.offset = psum;
-    CO[bucketi] = co;
-    psum += co.count;
+    auto count = counts[bucketi];
+    offsets[bucketi] = psum;
+    psum += count;
   }
   
   // Create a second "next bucket" table that given
@@ -179,8 +198,8 @@ void countingSortInPlace(
   uint8_t nextNonEmptyBucket = 0;
   
   for (int bucketi = bucketMax - 1; bucketi >= 0; bucketi--) {
-    CountOff co = CO[bucketi];
-    if (co.count != 0) {
+    auto count = counts[bucketi];
+    if (count != 0) {
       nextBuckets[bucketi] = nextNonEmptyBucket;
       nextNonEmptyBucket = bucketi;
     }
@@ -190,9 +209,10 @@ void countingSortInPlace(
     std::cout << "countingSortInPlace D = " << D << " prefix sum:" << std::endl;
     
     for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
-      CountOff co = CO[bucketi];
-      if (co.count != 0) {
-        std::cout << "[" << bucketi << "] = " << co.offset << std::endl;
+      auto count = counts[bucketi];
+      auto offset = offsets[bucketi];
+      if (count != 0) {
+        std::cout << "[" << bucketi << "] = " << offset << std::endl;
       }
     }
     std::cout << "-------- " << std::endl;
@@ -202,8 +222,8 @@ void countingSortInPlace(
     std::cout << "countingSortInPlace D = " << D << " next buckets:" << std::endl;
 
     for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
-      CountOff co = CO[bucketi];
-      if (co.count != 0) {
+      auto count = counts[bucketi];
+      if (count != 0) {
         std::cout << "[" << bucketi << "] = " << (unsigned int)nextBuckets[bucketi] << std::endl;
       }
     }
@@ -217,7 +237,7 @@ void countingSortInPlace(
 #endif
   
   readi = starti;
-  readVal = arr[readi];
+  uint32_t readVal = arr[readi];
   
   unsigned int currentBucketStartOffset = starti;
   
@@ -227,20 +247,17 @@ void countingSortInPlace(
 #if defined(DEBUG)
     assert(bucketi < bucketMax);
 #endif
-    CountOff co = CO[bucketi];
     
-    unsigned int writei = co.offset;
+    unsigned int writei = offsets[bucketi];
 #if defined(DEBUG)
     assert(writei >= starti);
     assert(writei < endi);
 #endif
     
-    // increment offset and decrement count (single write)
+    // increment offset and decrement count
     {
-      CountOff changed = co;
-      changed.offset += 1;
-      changed.count -= 1;
-      CO[bucketi] = changed;
+      counts[bucketi] -= 1;
+      offsets[bucketi] += 1;
     }
     
     if (readi == writei) {
@@ -253,7 +270,7 @@ void countingSortInPlace(
       readi += 1;
             
       // If writing this single value finished off a bucket range
-      const bool isBucketEmpty = co.count == 1;
+      const bool isBucketEmpty = counts[bucketi] == 0;
       
       if (isBucketEmpty) {
         // Bucket now empty, skip 0 to N other empty buckets, then partial bucket.
@@ -262,7 +279,7 @@ void countingSortInPlace(
         // cache friendly for small buckets.
         
         if constexpr (D > 0) {
-          readi = CO[bucketi].offset;
+          readi = offsets[bucketi];
           
           recurse(arr, currentBucketStartOffset, readi);
           
@@ -271,11 +288,11 @@ void countingSortInPlace(
         
         unsigned int nextBucketi = nextBuckets[bucketi];
         
-        while ((nextBucketi != 0) and (CO[nextBucketi].count == 0)) {
+        while ((nextBucketi != 0) and (counts[nextBucketi] == 0)) {
           if constexpr (D > 0) {
             unsigned int bucketi = nextBucketi;
             
-            readi = CO[bucketi].offset;
+            readi = offsets[bucketi];
             
             recurse(arr, currentBucketStartOffset, readi);
             
@@ -287,7 +304,7 @@ void countingSortInPlace(
         
         // Post empty bucket loop, skip partial in non-empty bucket
         if (nextBucketi != 0) {
-          readi = CO[nextBucketi].offset;
+          readi = offsets[nextBucketi];
 #if defined(DEBUG)
           assert(readi >= starti);
           assert(readi < endi);

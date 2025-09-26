@@ -32,25 +32,74 @@ unsigned int extractDigitOpt(uint32_t v) {
 // Note that bucketi writes back into caller stack because of
 // special case of all values in same bucket.
 
-template <unsigned int D>
+template <unsigned int D, unsigned int M>
 static inline
 void histogramOpt(
                   uint32_t * arr,
                   unsigned int starti,
                   unsigned int endi,
-                  uint32_t * counts,
                   unsigned int & bucketi,
-                  unsigned int bucketMax
+                  uint32_t * table1,
+                  uint32_t * table2
                   )
 {
+#define UNROLL_HISTOGRAMS 1
+  
+  constexpr unsigned int bucketMax = M;
+  
+#if !defined(UNROLL_HISTOGRAMS)
   for (auto readi = starti; readi < endi; readi++) {
     auto readVal = arr[readi];
     bucketi = extractDigit<D>(readVal);
 #if defined(DEBUG)
     assert(bucketi < bucketMax);
 #endif
-    ++counts[bucketi];
+    ++table1[bucketi];
   }
+#else // UNROLL_HISTOGRAMS
+  uint32_t table3[bucketMax] = {};
+  uint32_t table4[bucketMax] = {};
+  
+  constexpr size_t unroll_count = 4;
+  unsigned int unrolledLoops = (endi - starti) / unroll_count;
+  unsigned int unrolledEnd = unrolledLoops * unroll_count;
+
+  auto count1 = [](uint32_t *arr, uint32_t *counts, unsigned int readi){
+    auto readVal = arr[readi];
+    // Optimized loop does not write to caller bucketi
+    unsigned int bucketi = extractDigit<D>(readVal);
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
+    ++counts[bucketi];
+    return bucketi;
+  };
+  
+  unsigned int readi = starti;
+  for (; readi < unrolledEnd; readi += unroll_count) {
+    count1(arr, table1, readi+0);
+    count1(arr, table2, readi+1);
+    count1(arr, table3, readi+2);
+    count1(arr, table4, readi+3);
+  }
+  for (; readi < endi; readi++) {
+    bucketi = count1(arr, table1, readi);
+  }
+  
+  for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
+    table1[bucketi] = table1[bucketi] + table2[bucketi] + table3[bucketi] + table4[bucketi];
+  }
+
+  if (bucketi == bucketMax) {
+    // Wacky case of no cleanup loops, grab last bucketi explicitly
+    readi -= 1;
+    auto readVal = arr[readi];
+    bucketi = extractDigit<D>(readVal);
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
+  }
+#endif // UNROLL_HISTOGRAMS
 }
 
 // D is digit 3,2,1,0 for 32 bits
@@ -145,7 +194,7 @@ void countingSortInPlaceOpt(
   unsigned int readi;
   unsigned int bucketi = bucketMax;
   
-  histogramOpt<D>(arr, starti, endi, counts, bucketi, bucketMax);
+  histogramOpt<D, bucketMax>(arr, starti, endi, bucketi, counts, offsets);
   
   if (debugDumpHistogram) {
     std::cout << "countingSortInPlace D = " << D << " counts:" << std::endl;
