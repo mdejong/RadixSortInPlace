@@ -28,6 +28,31 @@ unsigned int extractDigitOpt(uint32_t v) {
   }
 }
 
+// Extract histogram logic into util method so profiling visibility.
+// Note that bucketi writes back into caller stack because of
+// special case of all values in same bucket.
+
+template <unsigned int D>
+static inline
+void histogramOpt(
+                  uint32_t * arr,
+                  unsigned int starti,
+                  unsigned int endi,
+                  uint32_t * counts,
+                  unsigned int & bucketi,
+                  unsigned int bucketMax
+                  )
+{
+  for (auto readi = starti; readi < endi; readi++) {
+    auto readVal = arr[readi];
+    bucketi = extractDigit<D>(readVal);
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
+    ++counts[bucketi];
+  }
+}
+
 // D is digit 3,2,1,0 for 32 bits
 
 template <unsigned int D>
@@ -119,16 +144,8 @@ void countingSortInPlaceOpt(
   // Histogram counts
   unsigned int readi;
   unsigned int bucketi = bucketMax;
-  uint32_t readVal;
   
-  for (readi = starti; readi < endi; readi++) {
-    readVal = arr[readi];
-    bucketi = extractDigit<D>(readVal);
-#if defined(DEBUG)
-    assert(bucketi < bucketMax);
-#endif
-    counts[bucketi] += 1;
-  }
+  histogramOpt<D>(arr, starti, endi, counts, bucketi, bucketMax);
   
   if (debugDumpHistogram) {
     std::cout << "countingSortInPlace D = " << D << " counts:" << std::endl;
@@ -219,7 +236,7 @@ void countingSortInPlaceOpt(
 #endif
   
   readi = starti;
-  readVal = arr[readi];
+  uint32_t readVal = arr[readi];
   
   unsigned int currentBucketStartOffset = starti;
   
