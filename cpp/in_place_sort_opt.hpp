@@ -43,6 +43,7 @@ void histogramOpt(
                   uint32_t * table2
                   )
 {
+  // Define this symbol to make use of 4 unroll optimization
 #define UNROLL_HISTOGRAMS 1
   
   constexpr unsigned int bucketMax = M;
@@ -63,27 +64,32 @@ void histogramOpt(
   constexpr size_t unroll_count = 4;
   unsigned int unrolledLoops = (endi - starti) / unroll_count;
   unsigned int unrolledEnd = unrolledLoops * unroll_count;
-
-  auto count1 = [](uint32_t *arr, uint32_t *counts, unsigned int readi){
-    auto readVal = arr[readi];
-    // Optimized loop does not write to caller bucketi
-    unsigned int bucketi = extractDigit<D>(readVal);
-#if defined(DEBUG)
-    assert(bucketi < bucketMax);
-#endif
-    ++counts[bucketi];
-    return bucketi;
-  };
   
   unsigned int readi = starti;
   for (; readi < unrolledEnd; readi += unroll_count) {
-    count1(arr, table1, readi+0);
-    count1(arr, table2, readi+1);
-    count1(arr, table3, readi+2);
-    count1(arr, table4, readi+3);
+    unsigned int bucketi0 = extractDigit<D>(arr[readi+0]);
+    unsigned int bucketi1 = extractDigit<D>(arr[readi+1]);
+    unsigned int bucketi2 = extractDigit<D>(arr[readi+2]);
+    unsigned int bucketi3 = extractDigit<D>(arr[readi+3]);
+
+#if defined(DEBUG)
+    assert(bucketi0 < bucketMax);
+    assert(bucketi1 < bucketMax);
+    assert(bucketi2 < bucketMax);
+    assert(bucketi3 < bucketMax);
+#endif
+    
+    ++table1[bucketi0];
+    ++table2[bucketi1];
+    ++table3[bucketi2];
+    ++table4[bucketi3];
   }
   for (; readi < endi; readi++) {
-    bucketi = count1(arr, table1, readi);
+    bucketi = extractDigit<D>(arr[readi]);
+#if defined(DEBUG)
+    assert(bucketi < bucketMax);
+#endif
+    ++table1[bucketi];
   }
   
   for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
