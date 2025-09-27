@@ -75,6 +75,97 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 
 @implementation RadixSortTests
 
+- (void)testCSIPIdent1Opt {
+  std::vector<uint32_t> inWords{
+    0
+  };
+  std::vector<uint32_t> expected{
+    0
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPIdent2Opt {
+  std::vector<uint32_t> inWords{
+    1, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 1
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPIdent3Opt {
+  std::vector<uint32_t> inWords{
+    2, 1, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 1, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPIdent4Opt {
+  std::vector<uint32_t> inWords{
+    3, 2, 1, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 1, 2, 3
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPIdent5Opt {
+  std::vector<uint32_t> inWords{
+    4, 3, 2, 1, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 1, 2, 3, 4
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPIdent6Opt {
+  std::vector<uint32_t> inWords{
+    1, 2, 3, 4, 0, 5
+  };
+  std::vector<uint32_t> expected{
+    0, 1, 2, 3, 4, 5
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+
 - (void)testCSIPTwoDigit1 {
   constexpr unsigned int N = 5;
   std::vector<uint32_t> inWords{
