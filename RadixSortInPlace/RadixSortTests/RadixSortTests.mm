@@ -326,20 +326,20 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 //constexpr unsigned int PERF_N = 100;
 
 //constexpr unsigned int PERF_N = 100000; // 100 thousand numbers
-//constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
+constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
 //constexpr unsigned int PERF_N = 100000000; // 100 million numbers
 
 // At 4Gb x 2, a test can take 20 minutes to finish
 //constexpr unsigned int PERF_N =   1073741824; // 2*30 is very very large (4 Gb x 2)
 
-constexpr unsigned int PERF_N =   1073741824 / 4; // (2*30)/4 is very very large (1 Gb x 2)
+//constexpr unsigned int PERF_N =   1073741824 / 4; // (2*30)/4 is very very large (1 Gb x 2)
 
 // Very large size tests will never finish unless this is 1
-#undef PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST
-#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1
-
 //#undef PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST
-//#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1000
+//#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1
+
+#undef PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST
+#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1000
 
 - (void)testCSIPPerformanceExampleD0 {
   constexpr unsigned int N = PERF_N;
