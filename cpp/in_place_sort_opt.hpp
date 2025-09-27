@@ -219,20 +219,12 @@ void countingSortInPlaceOpt(
   }
     
   constexpr unsigned int bucketMax = 256;
-  
-  //CountOff CO[bucketMax] = {}; // init array values to zero
-  
+
+  // counts and offsets can both be used for bucket counts and then start/end offsets.
+  // Init bothj to zero to support multiple uses.
+
   uint32_t counts[bucketMax] = {};
   uint32_t offsets[bucketMax] = {};
-  
-  // for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
-  //     CountOff z;
-  //     z.count = 0;
-  //     z.offset = 0;
-  //     CO[bucketi] = z;
-  // }
-  // memset(&CO[0], 0, sizeof(CO));
-  // CountOff CO[bucketMax] = { 0 }; // init array values to zero
   
   // Histogram counts
   unsigned int readi;
@@ -271,13 +263,15 @@ void countingSortInPlaceOpt(
     }
   }
   
-  // Prefix Sum (given starting offset)
+  // Prefix Sum (given starting offset), note that after this loop is completed the
+  // counts field is converted to an end of bucket offset.
   
   unsigned int psum = starti;
   for (bucketi = 0; bucketi < bucketMax; bucketi++) {
     auto count = counts[bucketi];
     offsets[bucketi] = psum;
     psum += count;
+    counts[bucketi] = psum;
   }
   
   // Create a second "next bucket" table that given
@@ -290,7 +284,7 @@ void countingSortInPlaceOpt(
   uint8_t nextNonEmptyBucket = 0;
   
   for (int bucketi = bucketMax - 1; bucketi >= 0; bucketi--) {
-    auto count = counts[bucketi];
+    auto count = counts[bucketi] - offsets[bucketi];
     if (count != 0) {
       nextBuckets[bucketi] = nextNonEmptyBucket;
       nextNonEmptyBucket = bucketi;
@@ -301,7 +295,7 @@ void countingSortInPlaceOpt(
     std::cout << "countingSortInPlace D = " << D << " prefix sum:" << std::endl;
     
     for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
-      auto count = counts[bucketi];
+      auto count = counts[bucketi] - offsets[bucketi];
       auto offset = offsets[bucketi];
       if (count != 0) {
         std::cout << "[" << bucketi << "] = " << offset << std::endl;
@@ -314,7 +308,7 @@ void countingSortInPlaceOpt(
     std::cout << "countingSortInPlace D = " << D << " next buckets:" << std::endl;
 
     for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
-      auto count = counts[bucketi];
+      auto count = counts[bucketi] - offsets[bucketi];
       if (count != 0) {
         std::cout << "[" << bucketi << "] = " << (unsigned int)nextBuckets[bucketi] << std::endl;
       }
@@ -361,11 +355,9 @@ void countingSortInPlaceOpt(
     assert(writei < endi);
 #endif
     
-    // increment offset and decrement count
-    {
-      counts[bucketi] -= 1;
-      offsets[bucketi] += 1;
-    }
+    // increment for either branch below
+
+    ++offsets[bucketi];
     
     if (readi == writei) {
       // Cached readVal should be written into the current bucket.
@@ -376,10 +368,17 @@ void countingSortInPlaceOpt(
 #endif
       readi += 1;
             
-      // If writing this single value finished off a bucket range
-      const bool isBucketEmpty = counts[bucketi] == 0;
+      // If writing this single value finished off current bucket range
       
-      if (isBucketEmpty) {
+      auto isBucketEmpty = [](
+                              unsigned int bucketi,
+                              uint32_t * offsets,
+                              uint32_t * counts
+                              ) {
+        return offsets[bucketi] == counts[bucketi];
+      };
+      
+      if (isBucketEmpty(bucketi, offsets, counts)) {
         // Bucket now empty, skip 0 to N other empty buckets, then partial bucket.
         // Note that current bucket and following empty buckets are recursed into
         // now as opposed to after all values have been processed as that is more
@@ -395,7 +394,7 @@ void countingSortInPlaceOpt(
         
         unsigned int nextBucketi = nextBuckets[bucketi];
         
-        while ((nextBucketi != 0) and (counts[nextBucketi] == 0)) {
+        while ((nextBucketi != 0) and isBucketEmpty(nextBucketi, offsets, counts)) {
           if constexpr (D > 0) {
             unsigned int bucketi = nextBucketi;
             
