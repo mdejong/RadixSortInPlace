@@ -465,7 +465,7 @@ void countingSortInPlaceOpt(
 
   // Setup initial conditions and loop over all values in range
   
-  constexpr bool debugDumpIterations = true;
+  constexpr bool debugDumpIterations = false;
   
   unsigned int currentBucketi = minNonEmptyBucket;
   unsigned int currentBucketStartOffset = offsets[currentBucketi];
@@ -479,7 +479,7 @@ void countingSortInPlaceOpt(
   
   for ( ; currentBucketOffset < endi ; ) {
     if (debugDumpIterations) {
-      std::cout << "reshuffle bucket [" << currentBucketi << "] caches " << readVal << " at offset " << currentBucketOffset << std::endl;
+      std::cout << "reshuffle bucket [" << currentBucketi << "] at offset " << currentBucketOffset << "caches " << readVal << std::endl;
     }
     
     readVal = reshuffle(arr, readVal, counts, offsets, starti, endi, currentBucketStartOffset, currentBucketOffset, currentBucketi, nextBuckets);
