@@ -333,8 +333,9 @@ void countingSortInPlaceOpt(
     uint32_t * offsets,
     unsigned int starti,
     unsigned int endi,
-    unsigned int & readi,
     unsigned int & currentBucketStartOffset,
+    unsigned int & currentBucketOffset,
+    unsigned int & currentBucketi,
     uint8_t * nextBuckets
   ) -> uint32_t {
     unsigned int bucketi = extractDigit<D>(readVal);
@@ -353,15 +354,15 @@ void countingSortInPlaceOpt(
 
     ++offsets[bucketi];
     
-    if (readi == writei) {
+    if (writei == currentBucketOffset) {
       // Cached readVal should be written into the current bucket.
       
-      arr[readi] = readVal;
+      arr[currentBucketOffset] = readVal;
 #if defined(DEBUG)
       slotWrites += 1;
 #endif
-      readi += 1;
-            
+      ++currentBucketOffset;
+      
       // If writing this single value finished off current bucket range
       
       auto isBucketEmpty = [](
@@ -379,7 +380,7 @@ void countingSortInPlaceOpt(
         // cache friendly for small buckets.
         
         if constexpr (D > 0) {
-          readi = offsets[bucketi];
+          auto readi = offsets[bucketi];
           
           recurse(arr, currentBucketStartOffset, readi);
           
@@ -392,7 +393,7 @@ void countingSortInPlaceOpt(
           if constexpr (D > 0) {
             unsigned int bucketi = nextBucketi;
             
-            readi = offsets[bucketi];
+            auto readi = offsets[bucketi];
             
             recurse(arr, currentBucketStartOffset, readi);
             
@@ -404,22 +405,24 @@ void countingSortInPlaceOpt(
         
         // Post empty bucket loop, skip partial in non-empty bucket
         if (nextBucketi != 0) {
-          readi = offsets[nextBucketi];
+          currentBucketOffset = offsets[nextBucketi];
 #if defined(DEBUG)
-          assert(readi >= starti);
-          assert(readi < endi);
+          assert(currentBucketOffset >= starti);
+          assert(currentBucketOffset < endi);
 #endif
         } else {
-          readi = endi;
+          currentBucketOffset = endi;
         }
+        
+        currentBucketi = nextBucketi;
       }
       
       // unconditional load, reloads from current slot on final iteration
-      readVal = arr[(readi < endi) ? readi : writei];
+      readVal = arr[(currentBucketOffset < endi) ? currentBucketOffset : writei];
       
 #if defined(DEBUG)
-      if (readi < endi) {
-        arr[readi] = 0xFFFFFFFF;
+      if (currentBucketOffset < endi) {
+        arr[currentBucketOffset] = 0xFFFFFFFF;
       }
 #endif
     } else {
@@ -434,7 +437,7 @@ void countingSortInPlaceOpt(
 #endif
       
 #if defined(DEBUG)
-      arr[readi] = 0xFFFFFFFF;
+      arr[currentBucketOffset] = 0xFFFFFFFF;
 #endif
     }
                         
@@ -462,21 +465,24 @@ void countingSortInPlaceOpt(
 
   // Setup initial conditions and loop over all values in range
   
-  constexpr bool debugDumpIterations = false;
-  
-  unsigned int readi = starti;
+  constexpr bool debugDumpIterations = true;
   
   unsigned int currentBucketi = minNonEmptyBucket;
-  unsigned int currentBucketStartOffset = starti;
+  unsigned int currentBucketStartOffset = offsets[currentBucketi];
+  unsigned int currentBucketOffset = currentBucketStartOffset; // offset of "hole" in bucket
   
-  uint32_t readVal = arr[readi];
+  uint32_t readVal = arr[currentBucketOffset];
   
-  for ( ; readi < endi ; ) {
+  if (debugDumpIterations) {
+    dump();
+  }
+  
+  for ( ; currentBucketOffset < endi ; ) {
     if (debugDumpIterations) {
-      std::cout << "reshuffle bucket " << currentBucketi << " caches " << readVal << " at offset " << readi << std::endl;
+      std::cout << "reshuffle bucket [" << currentBucketi << "] caches " << readVal << " at offset " << currentBucketOffset << std::endl;
     }
     
-    readVal = reshuffle(arr, readVal, counts, offsets, starti, endi, readi, currentBucketStartOffset, nextBuckets);
+    readVal = reshuffle(arr, readVal, counts, offsets, starti, endi, currentBucketStartOffset, currentBucketOffset, currentBucketi, nextBuckets);
     
     if (debugDumpIterations) {
       dump();
