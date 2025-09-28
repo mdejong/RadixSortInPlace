@@ -197,7 +197,7 @@ void countingSortInPlaceOpt(
           break;
         }
         default: {
-          countingSortInPlace<D-1>(arr, starti, endi);
+          countingSortInPlaceOpt<D-1>(arr, starti, endi);
           break;
         }
       }
