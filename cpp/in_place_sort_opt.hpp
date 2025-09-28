@@ -227,7 +227,6 @@ void countingSortInPlaceOpt(
   uint32_t offsets[bucketMax] = {};
   
   // Histogram counts
-  unsigned int readi;
   unsigned int bucketi = bucketMax;
   
   histogramOpt<D, bucketMax>(arr, starti, endi, bucketi, counts, offsets);
@@ -274,13 +273,11 @@ void countingSortInPlaceOpt(
     counts[bucketi] = psum;
   }
   
-  // Create a second "next bucket" table that given
-  // a bucketi this finds the next bucket indicated
-  // as being not-empty. If a bucket is not used
-  // then this table entry is zero, and the final
-  // used bucket contains a zero to indicate the end.
+  // Create nextBuckets table that will optimize
+  // looping over used buckets.
   
   uint8_t nextBuckets[bucketMax] = {}; // init array values to zero
+
   uint8_t nextNonEmptyBucket = 0;
   
   for (int bucketi = bucketMax - 1; bucketi >= 0; bucketi--) {
@@ -290,6 +287,8 @@ void countingSortInPlaceOpt(
       nextNonEmptyBucket = bucketi;
     }
   }
+  
+  uint8_t minNonEmptyBucket = nextNonEmptyBucket;
 
   if (debugDumpPrefixSum) {
     std::cout << "countingSortInPlace D = " << D << " prefix sum:" << std::endl;
@@ -321,11 +320,6 @@ void countingSortInPlaceOpt(
 #if defined(DEBUG)
   unsigned int slotWrites = 0;
 #endif
-  
-  readi = starti;
-  uint32_t readVal = arr[readi];
-  
-  unsigned int currentBucketStartOffset = starti;
   
   auto reshuffle = [
 #if defined(DEBUG)
@@ -422,6 +416,12 @@ void countingSortInPlaceOpt(
       
       // unconditional load, reloads from current slot on final iteration
       readVal = arr[(readi < endi) ? readi : writei];
+      
+#if defined(DEBUG)
+      if (readi < endi) {
+        arr[readi] = 0xFFFFFFFF;
+      }
+#endif
     } else {
       // Write into a different bucket at writei
       
@@ -432,13 +432,55 @@ void countingSortInPlaceOpt(
 #if defined(DEBUG)
       slotWrites += 1;
 #endif
+      
+#if defined(DEBUG)
+      arr[readi] = 0xFFFFFFFF;
+#endif
     }
                         
     return readVal;
   }; // end reshuffle()
   
+  auto dump = [
+               arr,
+               starti,
+               endi
+               ]()
+  {
+    for ( unsigned int i = starti ; i < endi ; i++ ) {
+      if (arr[i] == 0xFFFFFFFF) {
+        std::cout << "-";
+      } else {
+        std::cout << arr[i];
+      }
+      if (i <= (endi - 1)) {
+        std::cout << " ";
+      }
+    }
+    std::cout << std::endl;
+  };
+
+  // Setup initial conditions and loop over all values in range
+  
+  constexpr bool debugDumpIterations = false;
+  
+  unsigned int readi = starti;
+  
+  unsigned int currentBucketi = minNonEmptyBucket;
+  unsigned int currentBucketStartOffset = starti;
+  
+  uint32_t readVal = arr[readi];
+  
   for ( ; readi < endi ; ) {
+    if (debugDumpIterations) {
+      std::cout << "reshuffle bucket " << currentBucketi << " caches " << readVal << " at offset " << readi << std::endl;
+    }
+    
     readVal = reshuffle(arr, readVal, counts, offsets, starti, endi, readi, currentBucketStartOffset, nextBuckets);
+    
+    if (debugDumpIterations) {
+      dump();
+    }
   }
   
   if (debugOut) {
