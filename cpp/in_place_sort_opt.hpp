@@ -328,7 +328,7 @@ void countingSortInPlaceOpt(
      recurse
   ](
     uint32_t * arr,
-    uint32_t readVal,
+    uint32_t & cachedVal,
     uint32_t * counts,
     uint32_t * offsets,
     unsigned int starti,
@@ -338,26 +338,22 @@ void countingSortInPlaceOpt(
     unsigned int & currentBucketi,
     uint8_t * nextBuckets
   ) -> uint32_t {
-    unsigned int bucketi = extractDigit<D>(readVal);
+    unsigned int bucketi = extractDigit<D>(cachedVal);
     
 #if defined(DEBUG)
     assert(bucketi < bucketMax);
 #endif
     
-    unsigned int writei = offsets[bucketi];
+    unsigned int writei = offsets[bucketi]++; // increment offsets[bucketi] either way
 #if defined(DEBUG)
     assert(writei >= starti);
     assert(writei < endi);
 #endif
     
-    // increment for either branch below
-
-    ++offsets[bucketi];
-    
     if (writei == currentBucketOffset) {
       // Cached readVal should be written into the current bucket.
       
-      arr[currentBucketOffset] = readVal;
+      arr[currentBucketOffset] = cachedVal;
 #if defined(DEBUG)
       slotWrites += 1;
 #endif
@@ -418,18 +414,20 @@ void countingSortInPlaceOpt(
       }
       
       // unconditional load, reloads from current slot on final iteration
-      readVal = arr[(currentBucketOffset < endi) ? currentBucketOffset : writei];
+      cachedVal = arr[(currentBucketOffset < endi) ? currentBucketOffset : writei];
       
 #if defined(DEBUG)
       if (currentBucketOffset < endi) {
         arr[currentBucketOffset] = 0xFFFFFFFF;
       }
 #endif
+      
+      return true; // true when writing back to next slot in bucket
     } else {
       // Write into a different bucket at writei
       
-      uint32_t tmp = readVal;
-      readVal = arr[writei];
+      uint32_t tmp = cachedVal;
+      cachedVal = arr[writei];
       arr[writei] = tmp;
       
 #if defined(DEBUG)
@@ -439,9 +437,9 @@ void countingSortInPlaceOpt(
 #if defined(DEBUG)
       arr[currentBucketOffset] = 0xFFFFFFFF;
 #endif
+      
+      return false;
     }
-                        
-    return readVal;
   }; // end reshuffle()
   
   auto dump = [
@@ -479,10 +477,14 @@ void countingSortInPlaceOpt(
   
   for ( ; currentBucketOffset < endi ; ) {
     if (debugDumpIterations) {
-      std::cout << "reshuffle bucket [" << currentBucketi << "] at offset " << currentBucketOffset << "caches " << readVal << std::endl;
+      std::cout << "reshuffle bucket [" << currentBucketi << "] at offset " << currentBucketOffset << " caches " << readVal << std::endl;
     }
     
-    readVal = reshuffle(arr, readVal, counts, offsets, starti, endi, currentBucketStartOffset, currentBucketOffset, currentBucketi, nextBuckets);
+    bool wroteInBucket = reshuffle(arr, readVal, counts, offsets, starti, endi, currentBucketStartOffset, currentBucketOffset, currentBucketi, nextBuckets);
+
+    if (debugDumpIterations && wroteInBucket) {
+      std::cout << "wrote cached value to bucket [" << currentBucketi << "]" << std::endl;
+    }
     
     if (debugDumpIterations) {
       dump();
