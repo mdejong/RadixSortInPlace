@@ -5,11 +5,6 @@
 #include <assert.h>
 #endif
 
-typedef struct {
-  uint32_t count;
-  uint32_t offset;
-} CountOff;
-
 // Given a 32 bit integer, extract a specific digit.
 //
 // uint32_t digit = extractDigit<0>(v, digitOffset);
@@ -128,19 +123,8 @@ void countingSortInPlace(
     
   constexpr unsigned int bucketMax = 256;
   
-  //CountOff CO[bucketMax] = {}; // init array values to zero
-  
   uint32_t counts[bucketMax] = {};
   uint32_t offsets[bucketMax] = {};
-  
-  // for (unsigned int bucketi = 0; bucketi < bucketMax; bucketi++) {
-  //     CountOff z;
-  //     z.count = 0;
-  //     z.offset = 0;
-  //     CO[bucketi] = z;
-  // }
-  // memset(&CO[0], 0, sizeof(CO));
-  // CountOff CO[bucketMax] = { 0 }; // init array values to zero
   
   // Histogram counts
   unsigned int readi;

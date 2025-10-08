@@ -1,6 +1,14 @@
 Optimized implementation of in-place Radix sort.
 
-A rough draft was first implemented in Python and this code was then converted to C++. While many examples of LSD Radix Sort can be found easily, a LSD Radix sort that depends on copying values into a second full size array is not effective for large data sets. An in-place MSD Radix sort requires only minimal memory for count/offset table.
+A rough draft was first implemented in Python and this code was then converted to C++. While many examples of LSD Radix Sort can be found easily, a LSD Radix sort that depends on copying values into a second full size array is not effective for large data sets. This in-place MSD Radix sort operates on 32 bit unsigned integers and depends on only minimal stack space for a count/offset table.
+
+See in_place_sort_opt.hpp for C++ source code of the optimized approach based on a hybrid of American flag sort and the iteration approach from SkaSort. The file in_place_sort.hpp contains an American flag sort implemenetation for comparison purposes.
+
+Performance:
+
+The Xcode test file RadixSortTests contains a series of tests of interest. The following performance examples (be sure to run in Release mode) show performance on a huge pow(2,28) size random number buffer.
+
+
 
 Based on:
 
