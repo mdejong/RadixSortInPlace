@@ -519,6 +519,21 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 }
 
 
+- (void)testCSIPAllOneBucketOpt {
+  std::vector<uint32_t> inWords{
+    0, 0, 0, 0, 0, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 0, 0, 0, 0
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
 //constexpr unsigned int PERF_N = 100;
 
 //constexpr unsigned int PERF_N = 100000; // 100 thousand numbers
