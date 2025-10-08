@@ -36,6 +36,7 @@
 		3C7A26C72E84CBFF00C46DC7 /* lsd_radix.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = lsd_radix.py; sourceTree = "<group>"; };
 		3C7BE04E2E826939003ABE6E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = SOURCE_ROOT; };
 		3C878F2E2E83759F00C4E3A2 /* ska_sort.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ska_sort.hpp; sourceTree = "<group>"; };
+		3C8F50262E9615F600AE4C8D /* bit_set_256.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = bit_set_256.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -87,6 +88,7 @@
 		3C2FF6CF2E80E3E300C3EC9E /* cpp */ = {
 			isa = PBXGroup;
 			children = (
+				3C8F50262E9615F600AE4C8D /* bit_set_256.hpp */,
 				3C2FF6CD2E80E3E300C3EC9E /* in_place_sort.hpp */,
 				3C7035702E86100A004DAE90 /* in_place_sort_opt.hpp */,
 				3C878F2E2E83759F00C4E3A2 /* ska_sort.hpp */,

@@ -10,8 +10,8 @@
 #include <random>
 #include <cstddef>  // For std::ptrdiff_t
 
-#include "in_place_sort.hpp"
 #include "in_place_sort_opt.hpp"
+#include "in_place_sort.hpp"
 
 #include "ska_sort.hpp"
 
@@ -75,6 +75,36 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
 
 @implementation RadixSortTests
 
+- (void)testCacheLineWidth {
+  const size_t lineSizeInBytes = cache_line_size();
+  
+  //const size_t expectedNumBytes = 128; // ARM64
+  const size_t expectedNumBytes = 64; // Intel64
+  
+  XCTAssert(lineSizeInBytes == expectedNumBytes, @"lineSizeInBytes %d", (int)lineSizeInBytes);
+}
+
+// Intel Mac 32768 bytes
+// ARM64 Mac 65536 bytes
+
+- (void)testL1DataCacheSize {
+  const size_t s = l1_data_cache_size();
+
+  //const size_t expectedNumBytes = 65536; // ARM64 2^16
+  const size_t expectedNumBytes = 32768; // Intel64 2^15
+  
+  XCTAssert(s == expectedNumBytes, @"l1_data_cache_size %d", (int)s);
+}
+
+- (void)testPageSize {
+  const size_t s = page_size();
+
+  //const size_t expectedNumBytes = 65536; // ARM64 2^16
+  const size_t expectedNumBytes = 4096; // Intel64
+  
+  XCTAssert(s == expectedNumBytes, @"page_size %d", (int)s);
+}
+
 - (void)testCSIPIdent1Opt {
   std::vector<uint32_t> inWords{
     0
@@ -85,7 +115,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlaceOpt<0>(inWords.data(), 0, N);
-
+  
   bool same = inWords == expected;
   XCTAssert(same);
 }
@@ -100,7 +130,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlaceOpt<0>(inWords.data(), 0, N);
-
+  
   bool same = inWords == expected;
   XCTAssert(same);
 }
@@ -115,7 +145,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlaceOpt<0>(inWords.data(), 0, N);
-
+  
   bool same = inWords == expected;
   XCTAssert(same);
 }
@@ -130,7 +160,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlaceOpt<0>(inWords.data(), 0, N);
-
+  
   bool same = inWords == expected;
   XCTAssert(same);
 }
@@ -145,7 +175,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlaceOpt<0>(inWords.data(), 0, N);
-
+  
   bool same = inWords == expected;
   XCTAssert(same);
 }
@@ -160,10 +190,146 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlaceOpt<0>(inWords.data(), 0, N);
-
+  
   bool same = inWords == expected;
   XCTAssert(same);
 }
+
+- (void)testCSIPPairs1Opt {
+  std::vector<uint32_t> inWords{
+    1, 1, 0, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPPairs2Opt {
+  std::vector<uint32_t> inWords{
+    1, 0, 1, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPPairs3Opt {
+  std::vector<uint32_t> inWords{
+    2, 2, 1, 1, 0, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1, 2, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPPairs4Opt {
+  std::vector<uint32_t> inWords{
+    2, 2, 0, 0, 1, 1
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1, 2, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPMismatchedInBuckets1Opt {
+  std::vector<uint32_t> inWords{
+    2, 2, 2, 2, 2, 0, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 2, 2, 2, 2, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPMismatchedInBuckets2Opt {
+  std::vector<uint32_t> inWords{
+    2, 0, 2, 0, 0, 0, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 0, 0, 0, 2, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPMismatchedInBuckets3Opt {
+  std::vector<uint32_t> inWords{
+    2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPMismatchedInBuckets4Opt {
+  std::vector<uint32_t> inWords{
+    1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPMismatchedInBuckets5Opt {
+  std::vector<uint32_t> inWords{
+    1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+  
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
 
 
 - (void)testCSIPTwoDigit1 {
@@ -303,7 +469,7 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   const unsigned int N = (int) inWords.size();
   
   countingSortInPlace<0>(inWords.data(), 0, N);
-
+  
   bool same = inWords == expected;
   XCTAssert(same);
 }
@@ -323,23 +489,53 @@ void setupRandomPixelValues(std::vector<uint32_t> & inputValues, uint32_t maxNum
   XCTAssert(same);
 }
 
+- (void)testSkaCheckPartialSkipOpt {
+  std::vector<uint32_t> inWords{
+    2, 2, 3, 3, 0, 1, 0, 1
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 1, 1, 2, 2, 3, 3
+  };
+  
+  ska_sort(inWords.begin(), inWords.end());
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+- (void)testCSIPCheckTriplesOpt {
+  std::vector<uint32_t> inWords{
+    0, 2, 3, 3, 3, 2, 0, 0, 1, 1
+  };
+  std::vector<uint32_t> expected{
+    0, 0, 0, 1, 1, 2, 2, 3, 3, 3
+  };
+  const unsigned int N = (int) inWords.size();
+  
+  countingSortInPlaceOpt<0>(inWords.data(), 0, N);
+
+  bool same = inWords == expected;
+  XCTAssert(same);
+}
+
+
 //constexpr unsigned int PERF_N = 100;
 
 //constexpr unsigned int PERF_N = 100000; // 100 thousand numbers
-constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
+//constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
 //constexpr unsigned int PERF_N = 100000000; // 100 million numbers
 
 // At 4Gb x 2, a test can take 20 minutes to finish
 //constexpr unsigned int PERF_N =   1073741824; // 2*30 is very very large (4 Gb x 2)
 
-//constexpr unsigned int PERF_N =   1073741824 / 4; // (2*30)/4 is very very large (1 Gb x 2)
+constexpr unsigned int PERF_N =   1073741824 / 4; // (2*30)/4 is very very large (1 Gb x 2)
 
 // Very large size tests will never finish unless this is 1
-//#undef PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST
-//#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1
-
 #undef PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST
-#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1000
+#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1
+
+//#undef PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST
+//#define PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST 1000
 
 - (void)testCSIPPerformanceExampleD0 {
   constexpr unsigned int N = PERF_N;
@@ -614,6 +810,7 @@ constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
 
 - (void)testCSIPPerformanceExampleD3Opt {
   constexpr unsigned int N = PERF_N;
+  //constexpr unsigned int N = 100000;
 
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
@@ -666,8 +863,62 @@ constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
     
 }
 
+- (void)testSkaSortPerformanceExample {
+  constexpr unsigned int N = PERF_N;
+  
+  auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
+  std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
+  
+  // Generating the random numbers seems to take up the vast majority of runtime at large sizes
+  // Use u32 max so that randomWords are highly spread over whole int range
+  //constexpr unsigned int maxU32 = (uint32_t)-1;
+  //constexpr unsigned int maxU32 = 0xFF;
+  constexpr unsigned int maxU32 = 0xFFFFFFFF;
+  setupRandomPixelValues(randomWordsVec, maxU32);
+    
+  auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
+  std::vector<uint32_t> & dstVec = *sharedDstVec;
+  uint32_t *outOrigArr = dstVec.data();
+  memset(outOrigArr, 0, N * sizeof(uint32_t));
+  
+  [self measureBlock:^{
+    for (int i = 0; i < PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST; i++) {
+      std::vector<uint32_t> & randomWords = *sharedRandomWords;
+      uint32_t *inPtr = randomWords.data();
+      std::vector<uint32_t> & dstVec = *sharedDstVec;
+      uint32_t *outPtr = dstVec.data();
+      
+      memcpy(outPtr, inPtr, N * sizeof(uint32_t));
+      
+      ska_sort(dstVec.begin(), dstVec.end());
+      
+#if defined(DEBUG)
+      {
+        std::vector<uint32_t> expected;
+        {
+          std::vector<uint32_t> stdSorted = randomWords;
+          std::sort(begin(stdSorted), end(stdSorted));
+          expected = stdSorted;
+        }
+        bool passed = true;
+        for (int exi = 0; exi < expected.size(); exi++) {
+          if (expected[exi] != outPtr[exi]) {
+            XCTAssert(false, "%d != %d : at exi %d", expected[exi], outPtr[exi], exi);
+            passed = false;
+            break;
+          }
+        }
+        if (!passed) {
+          break;
+        }
+      }
+#endif // DEBUG
+    }
+  }];
+    
+}
 
-- (void)testStdSortExample {
+- (void)testStdSortPerformanceExample {
   constexpr unsigned int N = PERF_N;
   
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
@@ -721,18 +972,38 @@ constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
     
 }
 
-- (void)testSkaSortExample {
+// Worst case, only 2 buckets used but the last element in the second bucket is needed to
+// close out the first bucket.
+
+- (void)testCSIPPerformanceExampleWorstCaseD3Opt {
   constexpr unsigned int N = PERF_N;
-  
+  //constexpr unsigned int N = 1000;
+
   auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
-  
-  // Generating the random numbers seems to take up the vast majority of runtime at large sizes
-  // Use u32 max so that randomWords are highly spread over whole int range
-  //constexpr unsigned int maxU32 = (uint32_t)-1;
-  constexpr unsigned int maxU32 = 0xFFFFFFFF;
-  setupRandomPixelValues(randomWordsVec, maxU32);
     
+  // Assume a blocks of inputs where all the values are the same except the last one:
+  //
+  // [0 0 0 0 0 0 0 0 0 1]
+  // [1 1 1 1 1 1 1 1 1 0]
+  
+  // All of the values self swap up to the last one. The worst case is seen when the
+  // 1 value at the end of the first block repeatedly swaps to the front of the second block.
+  
+  for (int i = 0; i < N; i++) {
+    if (i < (N/2)) {
+      randomWordsVec[i] = 0;
+    } else {
+      randomWordsVec[i] = 1;
+    }
+  }
+  
+  // Swap first in bucket0 with last in bucket1 to generate
+  // worst case of repeated read from bucket1 while there
+  // is only a single element in bucket0.
+  
+  std::iter_swap(begin(randomWordsVec)+(N/2-1), begin(randomWordsVec)+(N-1));
+  
   auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
   std::vector<uint32_t> & dstVec = *sharedDstVec;
   uint32_t *outOrigArr = dstVec.data();
@@ -747,7 +1018,7 @@ constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
       
       memcpy(outPtr, inPtr, N * sizeof(uint32_t));
       
-      ska_sort(dstVec.begin(), dstVec.end());
+      countingSortInPlaceOpt<3>(outPtr, 0, N);
       
 #if defined(DEBUG)
       {
@@ -775,5 +1046,75 @@ constexpr unsigned int PERF_N = 250000; // 250 thousand numbers
     
 }
 
+// Comb filter applied to 0xFF generated data
+
+- (void)testCSIPPerformanceExampleCombZeroD0Opt {
+  constexpr unsigned int N = PERF_N;
+  //constexpr unsigned int N = 1000;
+
+  auto sharedRandomWords = std::make_shared<std::vector<uint32_t>>(N);
+  std::vector<uint32_t> & randomWordsVec = *sharedRandomWords;
+  
+  // buckets contain [0 N 0 N 0 N] pattern of elements
+  
+  constexpr unsigned int maxU32 = 0xFF;
+  setupRandomPixelValues(randomWordsVec, maxU32);
+    
+  for (int i = 0; i < N; i++) {
+    auto v = randomWordsVec[i];
+    
+    if ((v % 2) == 0) {
+      // Even, zero out even values
+      randomWordsVec[i] = 0;
+    }
+  }
+  
+  // Swap first in bucket0 with last in bucket1 to generate
+  // worst case of repeated read from bucket1 while there
+  // is only a single element in bucket0.
+  
+  //std::iter_swap(begin(randomWordsVec)+(N/2-1), begin(randomWordsVec)+(N-1));
+  
+  auto sharedDstVec = std::make_shared<std::vector<uint32_t>>(N);
+  std::vector<uint32_t> & dstVec = *sharedDstVec;
+  uint32_t *outOrigArr = dstVec.data();
+  memset(outOrigArr, 0, N * sizeof(uint32_t));
+  
+  [self measureBlock:^{
+    for (int i = 0; i < PERFORMANCE_VERY_BIG_N_NUM_LOOPS_TEST; i++) {
+      std::vector<uint32_t> & randomWords = *sharedRandomWords;
+      uint32_t *inPtr = randomWords.data();
+      std::vector<uint32_t> & dstVec = *sharedDstVec;
+      uint32_t *outPtr = dstVec.data();
+      
+      memcpy(outPtr, inPtr, N * sizeof(uint32_t));
+      
+      countingSortInPlaceOpt<0>(outPtr, 0, N);
+      
+#if defined(DEBUG)
+      {
+        std::vector<uint32_t> expected;
+        {
+          std::vector<uint32_t> stdSorted = randomWords;
+          std::sort(begin(stdSorted), end(stdSorted));
+          expected = stdSorted;
+        }
+        bool passed = true;
+        for (int exi = 0; exi < expected.size(); exi++) {
+          if (expected[exi] != outPtr[exi]) {
+            XCTAssert(false, "%d != %d : at exi %d", expected[exi], outPtr[exi], exi);
+            passed = false;
+            break;
+          }
+        }
+        if (!passed) {
+          break;
+        }
+      }
+#endif // DEBUG
+    }
+  }];
+    
+}
 
 @end
