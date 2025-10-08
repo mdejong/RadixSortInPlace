@@ -172,7 +172,8 @@ void histogramOpt(
 #endif // UNROLL_HISTOGRAMS4
 }
 
-// D is digit 3,2,1,0 for 32 bits
+// D is digit 3,2,1,0 for 32 bit unsigned int inputs. This hybrid of American Flag sort and SkaSort
+// significantly outperforms both earlier implementations.
 
 template <unsigned int D>
 __attribute__((noinline))
@@ -247,7 +248,7 @@ void countingSortInPlaceOpt(
   constexpr unsigned int bucketMax = 256;
 
   // counts and offsets can both be used for bucket counts and then start/end offsets.
-  // Init bothj to zero to support multiple uses.
+  // Init both to zero to support multiple uses.
 
   uint32_t counts[bucketMax] = {};
   uint32_t offsets[bucketMax] = {};
@@ -496,6 +497,11 @@ void countingSortInPlaceOpt(
           dump();
         }
         
+#if defined(DEBUG)
+        assert(currentBucketOffset < currentBucketEndOffset);
+        assert(currentBucketOffset >= offsets[currentBucketi]);
+#endif
+        
         unsigned int writeBucketi = extractDigitOpt<D>(arr[currentBucketOffset]);
     
     #if defined(DEBUG)
@@ -514,7 +520,7 @@ void countingSortInPlaceOpt(
         }
         
     #if defined(DEBUG)
-          slotWrites += 1;
+        slotWrites += 1;
     #endif
         
         std::iter_swap(&arr[currentBucketOffset], &arr[writei]);
@@ -546,12 +552,10 @@ void countingSortInPlaceOpt(
       // After the inner loop, the bucket iteration has advanced currentBucketOffset
       // to the end of the bucket. Start the bucket iteration over again since this
       // bucket can continue to be processed.
-
-//      if (debugDumpBucketBounds) {
-//        std::cout << "bucket [" << currentBucketi << "] post inner loop : currentBucketOffset " << currentBucketOffset << std::endl;
-//      }
       
-      //auto prevIterN = bucketIterN;
+#if defined(DEBUG)
+        assert(currentBucketOffset <= currentBucketEndOffset);
+#endif
       
       currentBucketOffset = offsets[currentBucketi];
       bucketIterN = currentBucketEndOffset - currentBucketOffset;
@@ -560,13 +564,6 @@ void countingSortInPlaceOpt(
         std::cout << "bucket [" << currentBucketi << "] inner loop over N = " << bucketIterN << " slots done" << std::endl;
         std::cout << "";
       }
-      
-      // Detect bad case when previous inner loop processed > N but the next
-      // one will process only 1.
-      
-      //if (bucketIterN == 1 and prevIterN > 1) {
-      //  std::cout << "bucket [" << currentBucketi << "] worst case detected " << std::endl;
-      //}
       
       switch (bucketIterN) {
         case 0: {
