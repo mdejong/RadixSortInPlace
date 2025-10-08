@@ -506,6 +506,7 @@ void countingSortInPlaceOpt(
     
     #if defined(DEBUG)
         assert(writeBucketi < bucketMax);
+        if (offsets[writeBucketi] == counts[writeBucketi]) { assert(0); }
     #endif
         
         unsigned int writei = offsets[writeBucketi]++; // increment offsets[writeBucketi] either way
@@ -513,16 +514,15 @@ void countingSortInPlaceOpt(
         assert(writei >= starti);
         assert(writei < endi);
     #endif
-
-        if (debugDumpIterations) {
-          std::cout << "reshuffle swap [" << currentBucketOffset << "] <-> [" << writei << "] into bucket " << writeBucketi << std::endl;
-          std::cout << "reshuffle swap( " << arr[currentBucketOffset] << " <-> " << arr[writei] << " ) into bucket " << writeBucketi << std::endl;
-        }
         
     #if defined(DEBUG)
         slotWrites += 1;
     #endif
-        
+
+        if (debugDumpIterations) {
+          std::cout << "reshuffle(1) [" << currentBucketOffset << "] <-> [" << writei << "] via swap( " << arr[currentBucketOffset] << " <-> " << arr[writei] << " ) into bucket " << writeBucketi << std::endl;
+        }
+
         std::iter_swap(&arr[currentBucketOffset], &arr[writei]);
         
         
