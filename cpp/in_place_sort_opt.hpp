@@ -471,8 +471,109 @@ void countingSortInPlaceOpt(
       std::cout << "process bucket [" << currentBucketi << "] at offset " << currentBucketOffset << " has N = " << currentBucketN << std::endl;
     }
     
-    // Inner loop processes N elements in the bucket until the bucket is empty
     size_t bucketIterN = currentBucketN;
+        
+    constexpr size_t doubleMinSize = 64;
+    
+    while (bucketIterN >= doubleMinSize) {
+      // Split the range in half and then iterate downward over each half.
+      // This iteration is imperfect, but it is very fast. What appears to
+      // be going on here is that two cachelines are being predicted as the
+      // loop iterates from right to left over each half. Performance testing
+      // on Intel Core i5 (3GHz) showed that sizes below 64 did not help
+      // performance while sizes above 64 hurt performance.
+
+      size_t midOffset = currentBucketOffset + (bucketIterN/2) - 1;
+      size_t endOffset = currentBucketEndOffset - 1;
+      
+      if (debugDumpBucketBounds) {
+        std::cout << "bucket [" << currentBucketi << "] pairs range : ";
+        std::cout << "( " << currentBucketOffset << ", " << midOffset << " ) ";
+        std::cout << "( " << (midOffset+1) << ", " << endOffset << " ) ";
+        std::cout << " for N = " << bucketIterN << std::endl;
+      }
+      
+      size_t minMidOffset = currentBucketOffset + 1;
+      
+      // no loop unrolling seems to perform the best
+      #pragma nounroll
+      for ( ; minMidOffset < midOffset; --midOffset, --endOffset) {
+        if (debugDumpBucketBounds) {
+          std::cout << "midOffset: " << midOffset << std::endl;
+          std::cout << "endOffset: " << endOffset << std::endl;
+        }
+        
+        uint32_t midVal = arr[midOffset];
+        uint32_t endVal = arr[endOffset];
+        
+        uint32_t digit0 = extractDigitOpt<D>(midVal);
+        uint32_t digit1 = extractDigitOpt<D>(endVal);
+        
+#if defined(DEBUG)
+        if (offsets[digit0] == counts[digit0]) { assert(0); }
+        if (offsets[digit1] == counts[digit1]) { assert(0); }
+#endif
+        
+        uint32_t writei0 = offsets[digit0]++;
+        uint32_t writei1 = offsets[digit1]++;
+        
+#if defined(DEBUG)
+        assert(writei0 != writei1);
+
+        auto assertOffset = [&](uint32_t offset) -> void
+        {
+          // Must not read write to one of the iteration pointers (self swap)
+          if ((offset == midOffset) || (offset == endOffset)) {
+            assert(0);
+          }
+          assert(offset >= starti);
+          assert(offset < endi);
+        };
+        assertOffset(writei0);
+        assertOffset(writei1);
+#endif
+        
+        // This logic looks a little odd since currentBucketOffset is
+        // being updated even when digit0 and digit1 are not the current
+        // bucket. The goal here is the keep the inner loop branchless
+        // as this results in the best performance.
+        
+        currentBucketOffset = offsets[currentBucketi];
+        minMidOffset = currentBucketOffset + 1;
+                
+        if (debugDumpIterations) {
+          std::cout << "reshuffle(2) [" << midOffset << "] <-> [" << writei0 << "] via swap( " << midVal << " <-> " << arr[writei0] << " ) into bucket " << digit0 << std::endl;
+          std::cout << "reshuffle(2) [" << endOffset << "] <-> [" << writei1 << "] via swap( " << endVal << " <-> " << arr[writei1] << " ) into bucket " << digit1 << std::endl;
+        }
+
+        // Gather read from ends of buckets. Note that this gather depends on
+        // the loop iteration to ensure there is never a self-swap as that would mean
+        // the read/write to writei0 would need to complete before the
+        // read/write to writei1.
+        
+        uint32_t gather0 = arr[writei0];
+        uint32_t gather1 = arr[writei1];
+
+        // Scatter write to ends of sorted buckets
+        
+        arr[writei0] = midVal;
+        arr[writei1] = endVal;
+        
+        arr[midOffset] = gather0;
+        arr[endOffset] = gather1;
+
+#if defined(DEBUG)
+        slotWrites += 2;
+#endif
+      } // end loop countdown
+      
+      // Reset to end of sorted area in bucket
+      currentBucketOffset = offsets[currentBucketi];
+#if defined(DEBUG)
+      assert(currentBucketOffset < currentBucketEndOffset);
+#endif
+      bucketIterN = currentBucketEndOffset - currentBucketOffset;
+    }
     
     while ( bucketIterN != 0 ) {
       if (debugDumpBucketBounds) {
@@ -491,7 +592,7 @@ void countingSortInPlaceOpt(
       // from the slot after the one in the previous loop (avoids data stall in next loop).
       
       // no loop unrolling seems to perform the best
-      //#pragma unroll(4)
+      #pragma nounroll
       for ( ; loopCountDown != 0; --loopCountDown) {
         if (debugDumpAllValuesOnIterations) {
           dump();
@@ -524,7 +625,6 @@ void countingSortInPlaceOpt(
         }
 
         std::iter_swap(&arr[currentBucketOffset], &arr[writei]);
-        
         
 #if defined(DEBUG)
         bool selfSwap = currentBucketOffset == writei;
