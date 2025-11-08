@@ -12,7 +12,7 @@ testCSIPPerformanceExampleD3    average: 8.9 s (American Flag)
 
 testSkaSortPerformanceExample   average: 8.3 s (SkaSort)
 
-testCSIPPerformanceExampleD3Opt average: 6.3 s (Hybrid)
+testCSIPPerformanceExampleD3Opt average: 5.9 s (Hybrid)
 
 Based on:
 
